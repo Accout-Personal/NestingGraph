@@ -1,9 +1,9 @@
-./testtool
-./build
-./dist
+./testtool/
+./build/
+./dist/
 *.log
-./inputs
-./build-strawberry
-./third_party
-./.vscode
-./Reproducibility dataset for a branch-and-bound-and-prune algorithm for irregular strip packing
+./inputs/
+./build-strawberry/
+./third_party/
+./.vscode/
+./Reproducibility dataset for a branch-and-bound-and-prune algorithm for irregular strip packing/
