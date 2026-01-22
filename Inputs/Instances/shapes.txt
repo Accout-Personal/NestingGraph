@@ -1,0 +1,70 @@
+[
+        {
+            "dataset":"shapes.json",
+            "outputName":"shapes4-small",
+            "quantity":1,
+            "width":13,
+            "length":24            
+        },
+        {
+            "dataset":"shapes.json",
+            "outputName":"shapes8",
+            "quantity":2,
+            "width":20,
+            "length":28            
+        },
+        {
+            "dataset":"shapes.json",
+            "outputName":"shapes2",
+            "quantity":2,
+            "width":40,
+            "length":16            
+        },
+        {
+            "dataset":"shapes.json",
+            "outputName":"shapes4",
+            "quantity":4,
+            "width":40,
+            "length":28            
+        },
+        {
+            "dataset":"shapes.json",
+            "outputName":"shapes5",
+            "quantity":5,
+            "width":40,
+            "length":35            
+        },
+        {
+            "dataset":"shapes.json",
+            "outputName":"shapes7",
+            "quantity":7,
+            "width":40,
+            "length":48            
+        },
+        {
+            "dataset":"shapes.json",
+            "outputName":"shapes9",
+            "quantity":
+                {  
+                    "PIECE 1":9,
+                    "PIECE 2":7,
+                    "PIECE 3":9,
+                    "PIECE 4":9
+                },
+            "width":40,
+            "length":54            
+        },
+        {
+            "dataset":"shapes.json",
+            "outputName":"shapes15",
+            "quantity":
+                {
+                    "PIECE 1":15,
+                    "PIECE 2":7,
+                    "PIECE 3":9,
+                    "PIECE 4":12
+                },
+            "width":40,
+            "length":67            
+        }
+    ]

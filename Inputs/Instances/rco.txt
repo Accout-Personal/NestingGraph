@@ -1,0 +1,37 @@
+[
+    {
+        "dataset":"RCO",
+        "outputName":"RCO1",
+        "quantity":1,
+        "width":15,
+        "length":8           
+    },
+    {
+        "dataset":"RCO",
+        "outputName":"RCO2",
+        "quantity":2,
+        "width":15,
+        "length":17           
+    },
+    {
+        "dataset":"RCO",
+        "outputName":"RCO3",
+        "quantity":3,
+        "width":15,
+        "length":25           
+    },
+    {
+        "dataset":"RCO",
+        "outputName":"RCO4",
+        "quantity":4,
+        "width":15,
+        "length":29           
+    },
+    {
+        "dataset":"RCO",
+        "outputName":"RCO5",
+        "quantity":5,
+        "width":15,
+        "length":41           
+    }
+]

@@ -1,0 +1,52 @@
+[
+        {
+            "dataset":"blaz",
+            "outputName":"blasz2",
+            "quantity":{
+                "PIECE 1":5,
+                "PIECE 2":5,
+                "PIECE 3":5,
+                "PIECE 4":5,
+                "PIECE 5":0,
+                "PIECE 6":0,
+                "PIECE 7":0
+            },
+            "width":15,
+            "length":27
+        },
+        {
+            "dataset":"blaz",
+            "outputName":"BLAZEWICZ1",
+            "quantity":1,
+            "width":15,
+            "length":8            
+        },
+        {
+            "dataset":"blaz",
+            "outputName":"BLAZEWICZ2",
+            "quantity":2,
+            "width":15,
+            "length":16            
+        },
+        {
+            "dataset":"blaz",
+            "outputName":"BLAZEWICZ3",
+            "quantity":3,
+            "width":15,
+            "length":22            
+        },
+        {
+            "dataset":"blaz",
+            "outputName":"BLAZEWICZ4",
+            "quantity":4,
+            "width":15,
+            "length":29           
+        },
+        {
+            "dataset":"blaz",
+            "outputName":"BLAZEWICZ5",
+            "quantity":5,
+            "width":15,
+            "length":36           
+        },
+    ]

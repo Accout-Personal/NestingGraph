@@ -1,0 +1,40 @@
+
+[       
+        {
+            "dataset":"three",
+            "outputName":"three",
+            "quantity":1,
+            "width":7,
+            "length":7            
+        },
+        {
+            "dataset":"three",
+            "outputName":"threep2",
+            "quantity":2,
+            "width":7,
+            "length":11
+            
+        },
+        {
+            "dataset":"three",
+            "outputName":"threep2w9",
+            "quantity":2,
+            "width":9,
+            "length":9
+            
+        },
+        {
+            "dataset":"three",
+            "outputName":"threep3",
+            "quantity":3,
+            "width":7,
+            "length":16
+        },
+        {
+            "dataset":"three",
+            "outputName":"threep3w9",
+            "quantity":3,
+            "width":9,
+            "length":13
+        }
+]

@@ -2,7 +2,7 @@ testtool/
 build/
 dist/
 *.log
-inputs/
+*.ps1
 build-strawberry/
 .vscode/
 Reproducibility dataset for a branch-and-bound-and-prune algorithm for irregular strip packing/

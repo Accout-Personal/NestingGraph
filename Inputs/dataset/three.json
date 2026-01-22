@@ -1,0 +1,66 @@
+{
+    "Piece1": {
+        "VERTICES": [
+            {
+                "x": 0,
+                "y": 0
+            },
+            {
+                "x": 2,
+                "y": 2
+            },
+            {
+                "x": 4,
+                "y": 0
+            },
+            {
+                "x": 2,
+                "y": -2
+            }
+            
+        ],
+        "QUANTITY": 1,
+        "NUMBER OF VERTICES": 4
+    },
+    "Piece2": {
+        "VERTICES": [
+            {
+                "x": 0,
+                "y": 0
+            },
+            {
+                "x": 3,
+                "y": 0
+            },
+            {
+                "x": 3,
+                "y": -3
+            },
+            {
+                "x": 0,
+                "y": -3
+            }           
+            
+        ],
+        "QUANTITY": 1,
+        "NUMBER OF VERTICES": 4
+    },
+    "Piece3": {
+        "VERTICES": [
+            {
+                "x": 0,
+                "y": 0
+            },
+            {
+                "x": 2,
+                "y": 3
+            },
+            {
+                "x": 4,
+                "y": 0
+            }            
+        ],
+        "QUANTITY": 1,
+        "NUMBER OF VERTICES": 3
+    }
+}

@@ -1,0 +1,130 @@
+[
+        {
+            "dataset":"artif",
+            "outputName":"artif1_2",
+            "quantity":{
+                "piece 1":1,
+                "piece 2":1,
+                "piece 3":1,
+                "piece 4":2,
+                "piece 5":2,
+                "piece 6":2,
+                "piece 7":2,
+                "piece 8":2
+            },
+            "width":27,
+            "length":8           
+        },
+        {
+            "dataset":"artif",
+            "outputName":"artif2_4",
+            "quantity":{
+                "piece 1":2,
+                "piece 2":2,
+                "piece 3":2,
+                "piece 4":4,
+                "piece 5":4,
+                "piece 6":4,
+                "piece 7":4,
+                "piece 8":4
+            },
+            "width":27,
+            "length":14           
+        },
+        {
+            "dataset":"artif",
+            "outputName":"artif3_6",
+            "quantity":{
+                "piece 1":3,
+                "piece 2":3,
+                "piece 3":3,
+                "piece 4":6,
+                "piece 5":6,
+                "piece 6":6,
+                "piece 7":6,
+                "piece 8":6
+            },
+            "width":27,
+            "length":20           
+        },
+        {
+            "dataset":"artif",
+            "outputName":"artif4_8",
+            "quantity":{
+                "piece 1":4,
+                "piece 2":4,
+                "piece 3":4,
+                "piece 4":8,
+                "piece 5":8,
+                "piece 6":8,
+                "piece 7":8,
+                "piece 8":8
+            },
+            "width":27,
+            "length":28           
+        },
+        {
+            "dataset":"artif",
+            "outputName":"artif5_10",
+            "quantity":{
+                "piece 1":5,
+                "piece 2":5,
+                "piece 3":5,
+                "piece 4":10,
+                "piece 5":10,
+                "piece 6":10,
+                "piece 7":10,
+                "piece 8":10
+            },
+            "width":27,
+            "length":34
+        },
+        {
+            "dataset":"artif",
+            "outputName":"artif6_12",
+            "quantity":{
+                "piece 1":6,
+                "piece 2":6,
+                "piece 3":6,
+                "piece 4":12,
+                "piece 5":12,
+                "piece 6":12,
+                "piece 7":12,
+                "piece 8":12
+            },
+            "width":27,
+            "length":41
+        },
+        {
+            "dataset":"artif",
+            "outputName":"artif7_14",
+            "quantity":{
+                "piece 1":7,
+                "piece 2":7,
+                "piece 3":7,
+                "piece 4":14,
+                "piece 5":14,
+                "piece 6":14,
+                "piece 7":14,
+                "piece 8":14
+            },
+            "width":27,
+            "length":48
+        },
+        {
+            "dataset":"artif",
+            "outputName":"artif",
+            "quantity":{
+                "piece 1":8,
+                "piece 2":8,
+                "piece 3":8,
+                "piece 4":15,
+                "piece 5":15,
+                "piece 6":15,
+                "piece 7":15,
+                "piece 8":15
+            },
+            "width":27,
+            "length":53
+        }
+    ]

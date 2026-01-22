@@ -1,0 +1,15 @@
+{
+    "dataset":"blaz",
+    "outputName":"blasz2",
+    "quantity":{
+        "PIECE 1":5,
+        "PIECE 2":5,
+        "PIECE 3":5,
+        "PIECE 4":5,
+        "PIECE 5":0,
+        "PIECE 6":0,
+        "PIECE 7":0
+    },
+    "width":15,
+    "length":27
+}
