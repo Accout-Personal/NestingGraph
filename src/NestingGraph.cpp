@@ -7,50 +7,29 @@
 #include "common/geometry_util.hpp"
 #include "common/graph.hpp"
 #include <utility>
+#include <limits>
 
-#if defined(_WIN32)
-  #include <windows.h>
-#elif defined(__APPLE__)
-  #include <mach-o/dyld.h>
-#else //Linux and Unix-like systems
-  #include <unistd.h>
-  #include <limits.h>
-#endif
+#include <filesystem>
+#include <system_error>
 
-using json = nlohmann::json;
 using namespace std;
+
 namespace fs = std::filesystem;
 
+// argv0 = argv[0] dal main
+fs::path executable_path_from_argv0(const char* argv0) {
+    if (!argv0 || !*argv0) return {};
+    std::error_code ec;
 
+    fs::path p = fs::path(argv0);
 
-std::filesystem::path executable_path() {
-#if defined(_WIN32)
-    std::wstring buf;
-    buf.resize(32768); // max path for many Win32 APIs
-    DWORD len = GetModuleFileNameW(nullptr, buf.data(), (DWORD)buf.size());
-    if (len == 0) return {};
-    buf.resize(len);
-    return std::filesystem::path(buf);
+    // Se è relativo, rendilo assoluto rispetto alla working dir
+    if (p.is_relative())
+        p = fs::absolute(p, ec);
 
-#elif defined(__APPLE__)
-    uint32_t size = 0;
-    _NSGetExecutablePath(nullptr, &size);          // get required size
-    std::vector<char> buf(size);
-    if (_NSGetExecutablePath(buf.data(), &size) != 0) return {};
-    // _NSGetExecutablePath may return a path with symlinks; canonicalize if you want
-    return std::filesystem::weakly_canonical(std::filesystem::path(buf.data()));
-
-#else // Linux and many Unix-like systems with /proc
-    std::vector<char> buf(4096);
-    for (;;) {
-        ssize_t n = readlink("/proc/self/exe", buf.data(), buf.size());
-        if (n < 0) return {};
-        if ((size_t)n < buf.size()) {
-            return std::filesystem::path(std::string(buf.data(), (size_t)n));
-        }
-        buf.resize(buf.size() * 2);
-    }
-#endif
+    // Canonicalizzazione "soft" (non fallire se non esiste)
+    fs::path c = fs::weakly_canonical(p, ec);
+    return ec ? p : c;
 }
 
 
@@ -487,7 +466,7 @@ static bool parse_bool(const char* s) {
 }
 
 int main(int argc, char** argv) {
-    auto dir_path = executable_path().parent_path();
+    auto dir_path = executable_path_from_argv0(argv[0]).parent_path();
     const string Usagephrase = "--instances <file|dir> Loads one instance JSON file, or a directory of instance JSON files. repeat for multiple file/directory nested directory will be ingnored.\n"
                "--datasets <dir> directory of dataset repeat for multiple directory\n"
                "--outputdir <dir>[optiional default ./result] \n"

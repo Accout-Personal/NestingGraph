@@ -2,15 +2,7 @@
 #include <nlohmann/json.hpp>
 #include "common/nfp_lib.hpp"
 #include <fstream>
-
-#if defined(_WIN32)
-  #include <windows.h>
-#elif defined(__APPLE__)
-  #include <mach-o/dyld.h>
-#else //Linux and Unix-like systems
-  #include <unistd.h>
-  #include <limits.h>
-#endif
+#include <sstream>
 
 
 using json = nlohmann::json;
