@@ -8,7 +8,12 @@ To build the project first clone the repository and pull all the submodules:
 git clone https://github.com/Accout-Personal/NestingGraph
 cd NestingGraph
 git submodule update --init --recursive
+
 ```
+
+For linux
+(yet to be updated)
+
 Then create a build folder and initialize CMake files:
 ```
 mkdir build

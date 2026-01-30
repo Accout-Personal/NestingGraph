@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <string>
 
 namespace GeometryUtil {
 
@@ -10,6 +11,7 @@ struct Point {
 
 using Polygon  = std::vector<Point>;
 using Polygons = std::vector<Polygon>;
+ 
 
 inline constexpr double TOL = 1e-9;
 
