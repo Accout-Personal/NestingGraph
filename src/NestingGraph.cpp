@@ -60,9 +60,17 @@ void writeNfpInfpJson(const std::string& outputdir,
     out << nfp_infp;
 }
 
-struct BBox {
-    double xMin, xMax, yMin, yMax;
-};
+GeometryUtil::BBox computeBoundingBox(json poly){
+    GeometryUtil::Polygon geoPoly;
+    geoPoly.reserve(poly.size());
+    for (auto const & v: poly){
+        geoPoly.push_back(GeometryUtil::Point{v["x"].get<double>(), v["y"].get<double>()});
+    }
+    return GeometryUtil::computeBoundingBox(geoPoly);
+
+}
+
+
 
 using PtIJ16   = std::array<int16_t, 2>;   // (i, j) grid indices
 using PatternIJ = std::vector<PtIJ16>;
@@ -91,32 +99,22 @@ static inline void buildNfpPatternsForPoly(
 
     for (auto& nfp : poly.at("nfps")) {
 
-        // --- Compute bbox while pivot-zeroing nfp vertices ---
-        double vxMax = std::numeric_limits<double>::lowest();
-        double vxMin = std::numeric_limits<double>::max();
-        double vyMax = std::numeric_limits<double>::lowest();
-        double vyMin = std::numeric_limits<double>::max();
-
+        // --- pivot-zeroing nfp vertices ---
         auto& verts = nfp.at("VERTICES");
         for (auto& v : verts) {
             v["x"] = v.at("x").get<double>() - px;
             v["y"] = v.at("y").get<double>() - py;
-
-            const double x = v.at("x").get<double>();
-            const double y = v.at("y").get<double>();
-
-            vxMax = (x > vxMax) ? x : vxMax;
-            vxMin = (x < vxMin) ? x : vxMin;
-            vyMax = (y > vyMax) ? y : vyMax;
-            vyMin = (y < vyMin) ? y : vyMin;
         }
+
+        //Compute Bounding Box of NFP
+        GeometryUtil::BBox nfpBBox = computeBoundingBox(verts);
 
         const auto polyVerts = NFPTool::parseVertices(verts);
 
-        const int iStart = static_cast<int>(std::floor(vxMin / gx)) - 1;
-        const int iEnd   = static_cast<int>(std::ceil (vxMax / gx)) + 3;
-        const int jStart = static_cast<int>(std::floor(vyMin / gy)) - 1;
-        const int jEnd   = static_cast<int>(std::ceil (vyMax / gy)) + 3;
+        const int iStart = static_cast<int>(std::floor(nfpBBox.xMin / gx)) - 1;
+        const int iEnd   = static_cast<int>(std::ceil (nfpBBox.xMax / gx)) + 3;
+        const int jStart = static_cast<int>(std::floor(nfpBBox.yMin / gy)) - 1;
+        const int jEnd   = static_cast<int>(std::ceil (nfpBBox.yMax / gy)) + 3;
 
         // Local buffers (freed each iteration after move)
         PatternIJ  pattern;
@@ -233,6 +231,7 @@ static inline LayersResult generateLayers(
     const int ny = static_cast<int>(width  / gy);
 
     for (auto& [key, val] : polygons.items()) {
+        
         const std::string polyKey = key;
         const json& mainPiece = val;
 
@@ -241,6 +240,7 @@ static inline LayersResult generateLayers(
 
         const GeometryUtil:: Polygon innerfit = NFPTool::parseVertices(mainPiece.at("innerfit"));
         const double innerFitArea = std::abs(GeometryUtil::polygonArea(innerfit));
+        
         const double boardArea = length * width;
         for (int q = 0; q < quantity; ++q) {
             auto boardPoints = generatePoints(length,width, freq);
@@ -249,7 +249,8 @@ static inline LayersResult generateLayers(
             LayerPoints lp;
             lp.polygon = polyKey;
             lp.layer = layer;
-            lp.innerFitPoints.reserve(boardArea / innerFitArea + 16); //TODO: estimate better using area ratio
+            std::cout << "Board Area: " << boardArea << " InnerfitArea " << innerFitArea << endl;
+            lp.innerFitPoints.reserve(static_cast<unsigned int>(innerFitArea + 16)); //TODO: estimate better using area ratio
             
             LayerMatrix lm;
             lm.polygon = polyKey;
@@ -296,7 +297,7 @@ void processGroupPair(
     std::vector<GenPoint> PointsA,
     PatternIJ& NFPA_B,
     LayerMatrix& innerMatrixB,
-    BBox BBoxB,
+    GeometryUtil::BBox BBoxB,
     double gx,
     double gy,
     Graph& graph
@@ -661,14 +662,15 @@ int main(int argc, char** argv) {
 
         json polygons;
         try {
+            std::cout << "Processing NFP..\n";
             polygons = NFPTool::processNFP(dataset, length, width);
         } catch (const exception& e) {
             cerr << "Error during NFP processing: " << e.what() << "\n";
             return 1;
         }
-
+        std::cout << "NFP Generated:" << polygons.dump(1) << "\n";
         // write the dataset with NFP into JSON file
-
+        std::cout << "Writting NFP into JSON\n";
         writeNfpInfpJson(outputDataset, polygons);
 
         nlohmann::json board = polygons.at("rect");
@@ -701,6 +703,7 @@ int main(int argc, char** argv) {
         NfpPosTableT NfpPosTable;
         NfpIndexTableT NfpIndexTable;
 
+        std::cout << "Computing Innerfit Polygon BBox \n";
         for (auto& [key, poly] : polygons.items()){
 
             json& pivot = poly.at("VERTICES").at(0);
@@ -712,21 +715,9 @@ int main(int argc, char** argv) {
                 v["y"] = v.at("y").get<double>() - pivot.at("y").get<double>();
             } 
 
-            //Compute innerfit BBox
-            BBox Innerbbox{ numeric_limits<double>::max(),  //xMin
-                            numeric_limits<double>::lowest(), //xMax
-                             numeric_limits<double>::max(),  //yMin
-                             numeric_limits<double>::lowest() //yMax
-                    };
-            
-            for (auto& v : innerfit) {
-                const double x = v.at("x").get<double>();
-                const double y = v.at("y").get<double>();
-                if (x > Innerbbox.xMax) Innerbbox.xMax = x;
-                if (x < Innerbbox.xMin) Innerbbox.xMin = x;
-                if (y > Innerbbox.yMax) Innerbbox.yMax = y;
-                if (y < Innerbbox.yMin) Innerbbox.yMin = y;
-            }
+            //Compute innerfit BBox     
+            std::cout << "Computing BBox for innerfit\n" << key << " \n";       
+            GeometryUtil::BBox Innerbbox = computeBoundingBox(innerfit);
 
             poly["innerfit_BoundingBox"]["xMin"] = floor(Innerbbox.xMin / gx);
             poly["innerfit_BoundingBox"]["xMax"] = ceil(Innerbbox.xMax / gx);
@@ -736,7 +727,7 @@ int main(int argc, char** argv) {
             //Generate NFP Pattern 
 
             
-            
+            std::cout << "Genering NFP pattern for " << key << " \n";
             buildNfpPatternsForPoly(key,poly,pivot,gx,gy,NfpIndexTable,NfpPosTable);
             
             /*
@@ -799,7 +790,7 @@ int main(int argc, char** argv) {
             */
         }
         //generate Layer points (vertex)
-
+        std::cout << "Generating layer vertices\n";
         LayersResult layers = generateLayers(
             polygons,
             step,
@@ -811,6 +802,7 @@ int main(int argc, char** argv) {
         );
         // Build graph
 
+        std::cout << "Making NFG Graph\n";
         Graph graph(static_cast<int>(layers.valIndex)); // valIndex is 1 + max vertex id
         for (const auto& [layerA, polyA] : layers.layerPoly) {
             const auto& pointsA = layers.layerOfPoint[layerA].innerFitPoints;
@@ -832,7 +824,7 @@ int main(int argc, char** argv) {
 
                 // find BBoxB
                 const auto& bboxBJson = polygons.at(polyB).at("innerfit_BoundingBox");
-                BBox BBoxB{
+                GeometryUtil::BBox BBoxB{
                     bboxBJson.at("xMin").get<double>(),
                     bboxBJson.at("xMax").get<double>(),
                     bboxBJson.at("yMin").get<double>(),

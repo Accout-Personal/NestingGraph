@@ -42,13 +42,13 @@ typedef int ShapeID; // Simple alias for shape identifiers
 
 class NFPGeneratorCGAL {
 private:
-    // Map key: Pair of (Stationary_ID, Orbiting_ID)
-    // Value: The robust Nef Polyhedron representing the NFP
-    std::map<std::pair<ShapeID, ShapeID>, Nef_polyhedron> cache;
 
     // Helper: Decompose a concave polygon into convex pieces
-    std::vector<Polygon_2> decompose(const Polygon_2& p) {
+    static std::vector<Polygon_2> decompose(const Polygon_2& p) {
         // Use partition traits polygons for output (they use std::list internally)
+        if (p.is_convex()) {
+            return { p };
+        }
         std::vector<Partition_polygon> partition_parts;
         
         CGAL::optimal_convex_partition_2(
@@ -73,7 +73,7 @@ private:
     }
 
     // Helper: Reflect polygon through origin (-B)
-    Polygon_2 reflect_polygon(const Polygon_2& p) {
+    static Polygon_2 reflect_polygon(const Polygon_2& p) {
         Polygon_2 p_reflected;
         for (auto vit = p.vertices_begin(); vit != p.vertices_end(); ++vit) {
             p_reflected.push_back(Point_2(-vit->x(), -vit->y()));
@@ -87,7 +87,7 @@ private:
     }
 
     // Helper: Convert EPECK point to Homogeneous<Gmpz> point
-    Standard_point convert_to_standard_point(const Point_2& pt) {
+    static Standard_point convert_to_standard_point(const Point_2& pt) {
         // Get the exact coordinates - EPECK::FT is a lazy wrapper around mpq_class
         // We use CGAL's exact() to get the underlying exact type, then convert via strings
         // to avoid direct mpq_class <-> Gmpq conversion issues
@@ -123,19 +123,35 @@ private:
 
 public:
     // THE CORE PIPELINE
-    Nef_polyhedron get_nfp(ShapeID idA, Polygon_2& polyA,
+    static Nef_polyhedron get_nfp(ShapeID idA, Polygon_2& polyA,
         ShapeID idB, Polygon_2& polyB) {
 
-        std::pair<ShapeID, ShapeID> key = { idA, idB };
-
+        if (polyA.is_clockwise_oriented()) {
+            polyA.reverse_orientation();
+        }
         std::vector<Polygon_2> partsA = decompose(polyA);
+
+
         Polygon_2 polyB_reflected = reflect_polygon(polyB);
 
         if (polyB_reflected.is_clockwise_oriented()) {
             polyB_reflected.reverse_orientation();
         }
-
         std::vector<Polygon_2> partsB = decompose(polyB_reflected);
+
+        //Handling for convex cases.
+        if (partsA.size() == 1 && partsB.size() == 1) {
+            // Simple case: both convex, just one Minkowski sum
+            Polygon_2 sum = CGAL::minkowski_sum_2(partsA[0], partsB[0]).outer_boundary();
+
+            // Return boundary directly as closed polygon (no EXCLUDED trick needed)
+            std::vector<Standard_point> pts;
+            for (auto v = sum.vertices_begin(); v != sum.vertices_end(); ++v)
+                pts.push_back(convert_to_standard_point(*v));
+
+            Nef_polyhedron result(pts.begin(), pts.end(), Nef_polyhedron::INCLUDED);
+            return result;
+        }
 
         // Store individual Minkowski sums
         Nef_polyhedron U_Open(Nef_polyhedron::EMPTY);
@@ -153,17 +169,11 @@ public:
             }
         }
 
-        cache[key] = U_Open;
-        return U_Open;
+        return U_Open.closure();
     }
+    
 
-    // Helper to clear cache if needed (e.g. low memory)
-    void clear() {
-        cache.clear();
-    }
-
-
-    std::vector<std::vector<std::pair<double,double>>> processNFP(
+    static std::vector<std::vector<std::pair<double,double>>>  processNFP(
             std::vector<std::pair<double,double>>& polyA, 
             std::vector<std::pair<double,double>>& polyB) {
         
@@ -175,6 +185,8 @@ public:
         for (const auto& p : polyB) {
             cgalPolyB.push_back(Point_2(p.first, p.second));
         }
+
+
 
         // Get NFP as Nef Polyhedron
         Nef_polyhedron nfp = get_nfp(0, cgalPolyA, 1, cgalPolyB);
@@ -252,7 +264,6 @@ public:
                 }
             }
         }
-        cache.clear();
         return nfp_polygons;
     }
 };

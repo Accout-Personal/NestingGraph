@@ -1,7 +1,6 @@
 #include "geometry_util.hpp"
 #include <cmath>
 #include <algorithm>
-
 // Clipper2
 #include "clipper2/clipper.h"
 
@@ -173,6 +172,23 @@ bool isRectangle(const Polygon& p, double eps) {
     }
     return cornerHits == 4;
 }
+
+BBox computeBoundingBox(const Polygon& poly){
+    double vxMax = std::numeric_limits<double>::lowest();
+    double vxMin = std::numeric_limits<double>::max();
+    double vyMax = std::numeric_limits<double>::lowest();
+    double vyMin = std::numeric_limits<double>::max();
+    for (const auto &p: poly)
+    {
+        if (p.x > vxMax) vxMax = p.x;
+        if (p.x < vxMin) vxMin = p.x;
+        if (p.y > vyMax) vyMax = p.y;
+        if (p.y < vyMin) vyMin = p.y;
+    }
+    return BBox{vxMin,vxMax,vyMin,vyMax};
+
+}
+
 
 static bool samePoint(const GeometryUtil::Point& a,
                       const GeometryUtil::Point& b,

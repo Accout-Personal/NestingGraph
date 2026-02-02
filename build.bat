@@ -1,1 +1,0 @@
-cmake --build build-strawberry --config Release

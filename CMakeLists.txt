@@ -16,7 +16,7 @@ else()
     set(VCPKG_TARGET_TRIPLET "x64-linux" CACHE STRING "")
 endif()
 
-project(nfp_refactor LANGUAGES CXX)
+project(nestab LANGUAGES CXX)
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_STATIC_RUNTIME ON)
 set(CMAKE_CXX_STANDARD 17)
@@ -43,6 +43,8 @@ add_library(utils STATIC
 )
 
 find_package(CGAL REQUIRED)
+
+target_link_libraries(utils PUBLIC CGAL::CGAL)
 
 target_include_directories(utils PRIVATE
   src
@@ -108,6 +110,7 @@ target_link_libraries(nfpGen PRIVATE
 )
 
 target_link_libraries(nesting_graph PRIVATE
+  CGAL::CGAL
   utils
   clipper2
   nlohmann_json::nlohmann_json

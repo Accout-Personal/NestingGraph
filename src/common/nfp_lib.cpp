@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include "NFPGenerator.hpp"
 
 using json = nlohmann::json;
 namespace NFPTool{
@@ -35,8 +36,10 @@ static bool hasVerticesObject(const json& obj) {
 
 
 
+
 json processNFP(json &dataset,double height, double width)
 {
+    //height = lenght
     
     GeometryUtil::Polygon rect = {
         {0, 0},
@@ -70,19 +73,23 @@ json processNFP(json &dataset,double height, double width)
         }
 
         // ---- Inner-fit for rectangle ----
-        {
-            auto inner = GeometryUtil::noFitPolygonLite(
-                rect, fixedPoly,
-                /*inside=*/true,
-                /*searchEdges=*/false
-            );
+        //TODO:implement bounding box innerfit polygon
+        GeometryUtil::BBox polyBBox = GeometryUtil::computeBoundingBox(fixedPoly);
 
-            if (!inner.empty() && !inner[0].empty()) {
-                fixedObj["innerfit"] = dumpVertices(inner[0]);
-            } else {
-                fixedObj["innerfit"] = json::array();
-            }
-        }
+        //Consider first point of the polygon as pivot.
+        double xPivot = fixedObj["VERTICES"][0]["x"].get<double>();
+        double yPivot = fixedObj["VERTICES"][0]["y"].get<double>();
+
+        fixedObj["innerfit"] = json::array();
+        //the pivot point must resides inside the bounding box.
+        // thus always: >= than xMin, <= xMax >=yMin <= yMax
+        fixedObj["innerfit"].push_back({{"x", xPivot - polyBBox.xMin},{"y", yPivot - polyBBox.yMin}}); //Bottom left 
+
+        fixedObj["innerfit"].push_back({{"x", height - polyBBox.xMax + xPivot},{"y", yPivot - polyBBox.yMin}}); //Bottom right
+
+        fixedObj["innerfit"].push_back({{"x", height- polyBBox.xMax + xPivot},{"y", width - polyBBox.yMax + yPivot}}); //Top right
+        fixedObj["innerfit"].push_back({{"x", xPivot - polyBBox.xMin},{"y",  width - polyBBox.yMax + yPivot}}); // Top left
+
 
         // ---- Outer NFPs against all polygons ----
         fixedObj["nfps"] = json::array();
@@ -99,18 +106,33 @@ json processNFP(json &dataset,double height, double width)
                 fixedObj["nfps"].push_back(nfpEntry);
                 continue;
             }
+            std::vector<std::pair<double,double>> polygonPairsFixed;
+            polygonPairsFixed.reserve(fixedObj["VERTICES"].size());
+            std::vector<std::pair<double,double>> polygonPairsRot;
+            polygonPairsRot.reserve(rotObj["VERTICES"].size());
 
-            auto out = GeometryUtil::noFitPolygonLite(
-                fixedPoly, rotPoly,
-                /*inside=*/false,
-                /*searchEdges=*/false
+            for (auto const &fv : fixedObj["VERTICES"])
+            {
+                polygonPairsFixed.emplace_back(fv["x"],fv["y"]);
+            }
+
+            for (auto const &ov : rotObj["VERTICES"])
+            {
+                polygonPairsRot.emplace_back(ov["x"],ov["y"]);
+            }
+            //auto nfpGen = NFPGeneratorCGAL();
+            auto outNfps = NFPGeneratorCGAL::processNFP(
+                polygonPairsFixed, polygonPairsRot
             );
 
             json nfpEntry;
             nfpEntry["POLYGON"] = rotKey;
 
-            if (!out.empty() && !out[0].empty()) {
-                nfpEntry["VERTICES"] = dumpVertices(out[0]);
+            if (!outNfps.empty() && !outNfps[0].empty()) {
+                json Jout = json::array();
+                for (auto outV :outNfps[0]) Jout.push_back({{"x",outV.first},{"y",outV.second}});
+                nfpEntry["VERTICES"] = Jout;
+                
             } else {
                 std::cerr << "ERROR: Empty NFP. Terminating\n";
                 std::cerr << "datset: " << dataset << "\n";

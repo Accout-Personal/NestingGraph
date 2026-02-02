@@ -8,3 +8,5 @@ build-strawberry/
 vcpkg_installed/
 build-static/
 Reproducibility dataset for a branch-and-bound-and-prune algorithm for irregular strip packing/
+.vs/
+temp/

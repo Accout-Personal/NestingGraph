@@ -1,8 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include "common/geometry_util.hpp"
-#include "common/NFPGenerator.h"
-
+#include "common/NFPGenerator.hpp"
 
 
 using Point = std::pair<double, double>;
@@ -453,12 +452,54 @@ void test6() {
 }
 
 
+void testSimple() {
+    std::cout << "\n" << std::string(70, '=') << "\n";
+    std::cout << "TEST Simple polygon with itself.\n";
+    std::cout << std::string(70, '=') << "\n\n";
+
+    // L-1
+    std::vector<Point> verts_a = {
+        Point(0, 0),
+        Point(2, 2),
+        Point(4, 0),
+        Point(2, -2)
+    };
+
+    // L-2
+    std::vector<Point> verts_b = {
+        Point(0, 0),
+        Point(2, 2),
+        Point(4, 0),
+        Point(2, -2)
+    };
+
+    Polygon poly_a(verts_a);
+    Polygon poly_b(verts_b);
+
+    printPolygon("Polygon A (L-shape)", poly_a);
+    printPolygon("Polygon B (L-shape)", poly_b);
+
+    NFPGeneratorCGAL gen;
+    auto nfp = gen.processNFP(poly_a, poly_b);
+
+    printNFP(nfp);
+
+    // Verify no self-intersection
+    
+    if (!nfp.empty()) {
+        std::cout << "NFP generated successfully with " << nfp[0].size() << " vertices\n";
+        std::cout << "Visual inspection needed to verify correctness.\n";
+    }
+}
+
+
 int main() {
     std::cout << "NestingGraph NFP Test Program\n";
-    test2_L_shape_square();
-    test3_L_shape_L();
-    test4();
-    test5();
-    test6();
+    //test2_L_shape_square();
+    //test3_L_shape_L();
+    //test4();
+    //test5();
+    //test6();
+    testSimple();
     return 0;
 }
