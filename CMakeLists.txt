@@ -42,9 +42,26 @@ add_library(utils STATIC
   src/common/nfp_lib.cpp
 )
 
-find_package(CGAL REQUIRED)
+find_package(CGAL CONFIG REQUIRED)
 
-target_link_libraries(utils PUBLIC CGAL::CGAL)
+add_library(nfp_cgal SHARED
+  src/nfp/NFPGenerator.cpp
+)
+
+# export symbols automatically for now (step-1 quick win)
+set_target_properties(nfp_cgal PROPERTIES
+  WINDOWS_EXPORT_ALL_SYMBOLS ON
+)
+
+target_include_directories(nfp_cgal PUBLIC
+  src
+)
+
+target_link_libraries(nfp_cgal PRIVATE CGAL::CGAL)
+
+if(TARGET CGAL::CGAL_Core)
+  target_link_libraries(nfp_cgal PRIVATE CGAL::CGAL_Core)
+endif()
 
 target_include_directories(utils PRIVATE
   src
@@ -96,23 +113,22 @@ target_include_directories(nesting_graph PRIVATE
 
 
 target_link_libraries(nfpTest PRIVATE
-  CGAL::CGAL
   utils
+  nfp_cgal
   clipper2
   nlohmann_json::nlohmann_json
 )
 
 target_link_libraries(nfpGen PRIVATE
-  CGAL::CGAL
   utils
+  nfp_cgal
   clipper2
   nlohmann_json::nlohmann_json
 )
 
 target_link_libraries(nesting_graph PRIVATE
-  CGAL::CGAL
   utils
+  nfp_cgal
   clipper2
   nlohmann_json::nlohmann_json
 )
-
