@@ -40,6 +40,7 @@ echo   %CMAKE_EXE%
 echo.
 
 rem --- Configure = generate .sln/.vcxproj using your preset ---
+"%CMAKE_EXE%" --version
 "%CMAKE_EXE%" --preset "%PRESET%"
 if errorlevel 1 goto :fail
 
