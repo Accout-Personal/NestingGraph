@@ -1,7 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include "common/geometry_util.hpp"
-#include "common/NFPGenerator.hpp"
+#include "nfp/NFPGenerator.hpp"
 
 
 using Point = std::pair<double, double>;
@@ -53,7 +53,7 @@ using Polygon = std::vector<Point>;
 //    printPolygon("Polygon B (triangle)", poly_b);
 //
 //    NFPGenerator gen;
-//    auto nfp = gen.generate(poly_a, poly_b);
+//    auto nfp = nfp::generate(poly_a, poly_b);
 //
 //    printNFP(nfp);
 //}
@@ -114,8 +114,8 @@ void test2_L_shape_square() {
     printPolygon("Polygon A (L-shape)", poly_a);
     printPolygon("Polygon B (square)", poly_b);
 
-    NFPGeneratorCGAL gen;
-    auto nfp = gen.processNFP(poly_a, poly_b);
+
+    auto nfp = nfp::processNFP(poly_a, poly_b);
 
     printNFP(nfp);
 
@@ -159,8 +159,8 @@ void test3_L_shape_L() {
     printPolygon("Polygon A (L-shape)", poly_a);
     printPolygon("Polygon B (L-shape)", poly_b);
 
-    NFPGeneratorCGAL gen;
-    auto nfp = gen.processNFP(poly_a, poly_b);
+    
+    auto nfp = nfp::processNFP(poly_a, poly_b);
 
     printNFP(nfp);
 
@@ -226,7 +226,7 @@ void test3_L_shape_L() {
 //    printPolygon("Polygon B ", poly_b);
 //
 //    NFPGenerator gen;
-//    auto nfp = gen.generate(poly_a, poly_b);
+//    auto nfp = nfp::generate(poly_a, poly_b);
 //
 //    printNFP(nfp);
 //
@@ -321,8 +321,8 @@ void test5() {
     printPolygon("Polygon B ", poly_b);
 //
 
-    NFPGeneratorCGAL gen;
-    auto nfp = gen.processNFP(poly_a, poly_b);
+    
+    auto nfp = nfp::processNFP(poly_a, poly_b);
 //
 
     printNFP(nfp);
@@ -377,8 +377,8 @@ void test4() {
     printPolygon("Polygon B ", poly_b);
     //
 
-    NFPGeneratorCGAL gen;
-    auto nfp = gen.processNFP(poly_a, poly_b);
+    
+    auto nfp = nfp::processNFP(poly_a, poly_b);
     //
 
     printNFP(nfp);
@@ -436,8 +436,8 @@ void test6() {
     printPolygon("Polygon B ", poly_b);
 //
 
-    NFPGeneratorCGAL gen;
-    auto nfp = gen.processNFP(poly_a, poly_b);
+    
+    auto nfp = nfp::processNFP(poly_a, poly_b);
 //
 
     printNFP(nfp);
@@ -479,8 +479,8 @@ void testSimple() {
     printPolygon("Polygon A (L-shape)", poly_a);
     printPolygon("Polygon B (L-shape)", poly_b);
 
-    NFPGeneratorCGAL gen;
-    auto nfp = gen.processNFP(poly_a, poly_b);
+    
+    auto nfp = nfp::processNFP(poly_a, poly_b);
 
     printNFP(nfp);
 
