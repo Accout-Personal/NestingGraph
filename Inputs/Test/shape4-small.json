@@ -1,0 +1,9 @@
+[
+        {
+            "dataset":"shapes.json",
+            "outputName":"shapes4-small",
+            "quantity":1,
+            "width":13,
+            "length":24            
+        }
+]

@@ -249,7 +249,7 @@ static inline LayersResult generateLayers(
             LayerPoints lp;
             lp.polygon = polyKey;
             lp.layer = layer;
-            std::cout << "Board Area: " << boardArea << " InnerfitArea " << innerFitArea << endl;
+            //std::cout << "Board Area: " << boardArea << " InnerfitArea " << innerFitArea << endl;
             lp.innerFitPoints.reserve(static_cast<unsigned int>(innerFitArea + 16)); //TODO: estimate better using area ratio
             
             LayerMatrix lm;
@@ -429,27 +429,47 @@ vector<json> loadJson(string jsonPath,unordered_map<string,string> datasetPathMa
     else if (dataset.is_array()){
         //case2: json is an array of instances
         for (auto& set : dataset){
-                //check if is an instance
-                if (set.contains("dataset") && set.contains("outputName") && set.contains("width") && set.contains("length")){
-                    string datasetName = set["dataset"].get<string>();
-                try{
-                     set["dataset"] = datasetPathMap.at(datasetName);
-                }
-                catch(const out_of_range&){
-                    //try to see if the dataset is the path instead of filename
-                    if(fs::exists(set["dataset"].get<string>()) && fs::is_regular_file(set["dataset"].get<string>())){
-                    //do nothing, the path is correct
-                    }else{
-                        cerr << "Error: dataset name " << datasetName << " not found in provided dataset directories.\n";
-                        exit(1);
-                    }
-                }
-                datasets.push_back(set);
-            }
-            else{
-                cerr << "Error: one of the dataset in the array is missing required fields.\n";
+            if(!set.contains("dataset"))
+            {
+                cerr << "Error: dataset : "<<set.dump(0) <<"is missing \"dataset\" field" << endl;
                 exit(1);
             }
+
+            if(!set.contains("outputName"))
+            {
+                cerr << "Error: dataset : "<<set.dump(0) <<"is missing \"outputName\" field" << endl;
+                exit(1);
+            }
+
+            if(!set.contains("width"))
+            {
+                cerr << "Error: dataset : "<<set.dump(0) <<"is missing \"width\" field" << endl;
+                exit(1);
+            }
+
+            if(!set.contains("length"))
+            {
+                cerr << "Error: dataset : "<<set.dump(0) <<"is missing \"length\" field" << endl;
+                exit(1);
+            }
+
+            
+            //check if is an instance
+            string datasetName = set["dataset"].get<string>();
+            try{
+                 set["dataset"] = datasetPathMap.at(datasetName);
+            }
+            catch(const out_of_range&){
+                //try to see if the dataset is the path instead of filename
+                if(fs::exists(set["dataset"].get<string>()) && fs::is_regular_file(set["dataset"].get<string>())){
+                //do nothing, the path is correct
+                }else{
+                    cerr << "Error: dataset name " << datasetName << " not found in provided dataset directories.\n";
+                    exit(1);
+                }
+            }
+            datasets.push_back(set);
+
         }
         return datasets;
     }
@@ -662,13 +682,13 @@ int main(int argc, char** argv) {
 
         json polygons;
         try {
-            std::cout << "Processing NFP..\n";
+            //std::cout << "Processing NFP..\n";
             polygons = NFPTool::processNFP(dataset, length, width);
         } catch (const exception& e) {
             cerr << "Error during NFP processing: " << e.what() << "\n";
             return 1;
         }
-        std::cout << "NFP Generated:" << polygons.dump(1) << "\n";
+        //std::cout << "NFP Generated:" << polygons.dump(1) << "\n";
         // write the dataset with NFP into JSON file
         std::cout << "Writting NFP into JSON\n";
         writeNfpInfpJson(outputDataset, polygons);
@@ -716,7 +736,7 @@ int main(int argc, char** argv) {
             } 
 
             //Compute innerfit BBox     
-            std::cout << "Computing BBox for innerfit\n" << key << " \n";       
+            //std::cout << "Computing BBox for innerfit\n" << key << " \n";       
             GeometryUtil::BBox Innerbbox = computeBoundingBox(innerfit);
 
             poly["innerfit_BoundingBox"]["xMin"] = floor(Innerbbox.xMin / gx);
@@ -727,7 +747,7 @@ int main(int argc, char** argv) {
             //Generate NFP Pattern 
 
             
-            std::cout << "Genering NFP pattern for " << key << " \n";
+            //std::cout << "Genering NFP pattern for " << key << " \n";
             buildNfpPatternsForPoly(key,poly,pivot,gx,gy,NfpIndexTable,NfpPosTable);
             
             /*
@@ -790,7 +810,7 @@ int main(int argc, char** argv) {
             */
         }
         //generate Layer points (vertex)
-        std::cout << "Generating layer vertices\n";
+        //std::cout << "Generating layer vertices\n";
         LayersResult layers = generateLayers(
             polygons,
             step,
@@ -802,7 +822,7 @@ int main(int argc, char** argv) {
         );
         // Build graph
 
-        std::cout << "Making NFG Graph\n";
+        std::cout << "Making NFP Graph\n";
         Graph graph(static_cast<int>(layers.valIndex)); // valIndex is 1 + max vertex id
         for (const auto& [layerA, polyA] : layers.layerPoly) {
             const auto& pointsA = layers.layerOfPoint[layerA].innerFitPoints;
@@ -865,7 +885,7 @@ int main(int argc, char** argv) {
                 }
             }
             // Implement clique covering algorithm
-            cout << "Starting clique covering: Max1\n";
+            cout << "Starting clique covering: Max1-EK\n";
             max1Cover = maximum1Heuristic(graph);
             //cout << "Start "
             max1MinEKCover = expandKouHeuristic(graph, max1Cover);

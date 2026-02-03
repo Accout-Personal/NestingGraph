@@ -113,12 +113,12 @@ json processNFP(json &dataset,double height, double width)
 
             for (auto const &fv : fixedObj["VERTICES"])
             {
-                polygonPairsFixed.emplace_back(fv["x"],fv["y"]);
+                polygonPairsFixed.emplace_back(fv.at("x").get<double>(),fv.at("y").get<double>());
             }
 
             for (auto const &ov : rotObj["VERTICES"])
             {
-                polygonPairsRot.emplace_back(ov["x"],ov["y"]);
+                polygonPairsRot.emplace_back(ov.at("x").get<double>(),ov.at("y").get<double>());
             }
             //auto nfpGen = NFPGeneratorCGAL();
             auto outNfps = nfp::processNFP(
@@ -134,8 +134,16 @@ json processNFP(json &dataset,double height, double width)
                 nfpEntry["VERTICES"] = Jout;
                 
             } else {
+                
                 std::cerr << "ERROR: Empty NFP. Terminating\n";
-                std::cerr << "datset: " << dataset << "\n";
+                std::cerr << "Fixed Polygon:" << fixedKey << " RotPolygon: " << rotKey << std::endl; 
+                for (auto SingleNfps: outNfps)
+                {   
+                    std::cerr <<"printing nfps..\n";
+                    for (auto outV: SingleNfps) std::cerr << "x: "<< outV.first <<" y:" << outV.second <<std::endl;
+                }
+                
+                //std::cerr << "datset: " << dataset << "\n";
                 exit(1);
                 nfpEntry["VERTICES"] = json::array();
             }
