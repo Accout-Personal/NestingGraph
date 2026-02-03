@@ -3,7 +3,7 @@
         "outputName": "J2-10-35-0",
         "dataset": "jakobs2.json",
         "width": 35,
-        "lenght": 28,
+        "length": 28,
         "quantity": {
             "1": 1,
             "2": 0,
@@ -36,7 +36,7 @@
         "outputName": "J2-10-35-1",
         "dataset": "jakobs2.json",
         "width": 35,
-        "lenght": 28,
+        "length": 28,
         "quantity": {
             "1": 1,
             "2": 0,
@@ -69,7 +69,7 @@
         "outputName": "J2-10-35-2",
         "dataset": "jakobs2.json",
         "width": 35,
-        "lenght": 27,
+        "length": 27,
         "quantity": {
             "1": 0,
             "2": 1,
@@ -102,7 +102,7 @@
         "outputName": "J2-10-35-3",
         "dataset": "jakobs2.json",
         "width": 35,
-        "lenght": 25,
+        "length": 25,
         "quantity": {
             "1": 0,
             "2": 0,
@@ -135,7 +135,7 @@
         "outputName": "J2-10-35-4",
         "dataset": "jakobs2.json",
         "width": 35,
-        "lenght": 22,
+        "length": 22,
         "quantity": {
             "1": 1,
             "2": 1,
@@ -168,7 +168,7 @@
         "outputName": "J2-12-35-0",
         "dataset": "jakobs2.json",
         "width": 35,
-        "lenght": 31,
+        "length": 31,
         "quantity": {
             "1": 1,
             "2": 0,
@@ -201,7 +201,7 @@
         "outputName": "J2-12-35-1",
         "dataset": "jakobs2.json",
         "width": 35,
-        "lenght": 29,
+        "length": 29,
         "quantity": {
             "1": 1,
             "2": 0,
@@ -234,7 +234,7 @@
         "outputName": "J2-12-35-2",
         "dataset": "jakobs2.json",
         "width": 35,
-        "lenght": 30,
+        "length": 30,
         "quantity": {
             "1": 0,
             "2": 1,
@@ -267,7 +267,7 @@
         "outputName": "J2-12-35-3",
         "dataset": "jakobs2.json",
         "width": 35,
-        "lenght": 25,
+        "length": 25,
         "quantity": {
             "1": 1,
             "2": 1,
@@ -300,7 +300,7 @@
         "outputName": "J2-12-35-4",
         "dataset": "jakobs2.json",
         "width": 35,
-        "lenght": 29,
+        "length": 29,
         "quantity": {
             "1": 1,
             "2": 0,
@@ -333,7 +333,7 @@
         "outputName": "J2-14-35-0",
         "dataset": "jakobs2.json",
         "width": 35,
-        "lenght": 34,
+        "length": 34,
         "quantity": {
             "1": 1,
             "2": 0,
@@ -366,7 +366,7 @@
         "outputName": "J2-14-35-1",
         "dataset": "jakobs2.json",
         "width": 35,
-        "lenght": 33,
+        "length": 33,
         "quantity": {
             "1": 1,
             "2": 1,
@@ -399,7 +399,7 @@
         "outputName": "J2-14-35-2",
         "dataset": "jakobs2.json",
         "width": 35,
-        "lenght": 33,
+        "length": 33,
         "quantity": {
             "1": 0,
             "2": 0,
@@ -432,7 +432,7 @@
         "outputName": "J2-14-35-3",
         "dataset": "jakobs2.json",
         "width": 35,
-        "lenght": 29,
+        "length": 29,
         "quantity": {
             "1": 1,
             "2": 1,
@@ -465,7 +465,7 @@
         "outputName": "J2-14-35-4",
         "dataset": "jakobs2.json",
         "width": 35,
-        "lenght": 31,
+        "length": 31,
         "quantity": {
             "1": 0,
             "2": 0,
