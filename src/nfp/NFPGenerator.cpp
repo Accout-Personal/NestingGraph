@@ -123,9 +123,7 @@ typedef int ShapeID; // Simple alias for shape identifiers
      Nef_polyhedron get_nfp(ShapeID idA, Polygon_2& polyA,
         ShapeID idB, Polygon_2& polyB) {
 
-        if (polyA.is_clockwise_oriented()) {
-            polyA.reverse_orientation();
-        }
+        
         std::vector<Polygon_2> partsA = decompose(polyA);
 
 
@@ -171,8 +169,8 @@ typedef int ShapeID; // Simple alias for shape identifiers
     
 
      std::vector<std::vector<std::pair<double,double>>>  processNFP(
-            std::vector<std::pair<double,double>>& polyA, 
-            std::vector<std::pair<double,double>>& polyB) {
+            const std::vector<std::pair<double,double>>& polyA, 
+            const std::vector<std::pair<double,double>>& polyB) {
         
         // Convert input to CGAL Polygon_2
         Polygon_2 cgalPolyA, cgalPolyB;
@@ -183,7 +181,14 @@ typedef int ShapeID; // Simple alias for shape identifiers
             cgalPolyB.push_back(Point_2(p.first, p.second));
         }
 
+        //ensure orientation is counter clockwise
+        if (cgalPolyA.is_clockwise_oriented()) {
+            cgalPolyA.reverse_orientation();
+        }
 
+        if (cgalPolyB.is_clockwise_oriented()) {
+            cgalPolyB.reverse_orientation();
+        }
 
         // Get NFP as Nef Polyhedron
         Nef_polyhedron nfp = get_nfp(0, cgalPolyA, 1, cgalPolyB);

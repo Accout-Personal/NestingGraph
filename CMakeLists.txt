@@ -57,6 +57,9 @@ target_include_directories(nfp_cgal PUBLIC
   src
 )
 
+# IMPORTANT: export when building DLL
+target_compile_definitions(nfp_cgal PRIVATE NFP_BRIDGE_BUILD)
+
 target_link_libraries(nfp_cgal PRIVATE CGAL::CGAL)
 
 if(TARGET CGAL::CGAL_Core)
