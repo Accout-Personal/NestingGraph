@@ -22,20 +22,6 @@ set(Boost_USE_STATIC_RUNTIME ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-file(GLOB CLIPPER2_SOURCES
-  ${CMAKE_SOURCE_DIR}/third_party/Clipper2/CPP/Clipper2Lib/src/*.cpp
-)
-
-# Some versions also have utils in a sibling folder.
-# If this folder exists in your tree, enable it:
-file(GLOB CLIPPER2_UTILS
-  ${CMAKE_SOURCE_DIR}/third_party/Clipper2/CPP/Clipper2Lib/utils/*.cpp
-)
-
-add_library(clipper2 STATIC
-  ${CLIPPER2_SOURCES}
-  ${CLIPPER2_UTILS}
-)
 
 add_library(utils STATIC
   src/common/geometry_util.cpp
@@ -68,12 +54,7 @@ endif()
 
 target_include_directories(utils PRIVATE
   src
-  ${CMAKE_SOURCE_DIR}/third_party/Clipper2/CPP/Clipper2Lib/include
   ${CMAKE_SOURCE_DIR}/third_party/json/include
-)
-
-target_include_directories(clipper2 PUBLIC
-  ${CMAKE_SOURCE_DIR}/third_party/Clipper2/CPP/Clipper2Lib/include
 )
 
 set(JSON_BuildTests OFF CACHE INTERNAL "")
@@ -98,19 +79,16 @@ set_target_properties(nfpGen PROPERTIES
 
 target_include_directories(nfpTest PRIVATE
   src
-  ${CMAKE_SOURCE_DIR}/third_party/Clipper2/CPP/Clipper2Lib/include
   ${CMAKE_SOURCE_DIR}/third_party/json/include
 )
 
 target_include_directories(nfpGen PRIVATE
   src
-  ${CMAKE_SOURCE_DIR}/third_party/Clipper2/CPP/Clipper2Lib/include
   ${CMAKE_SOURCE_DIR}/third_party/json/include
 )
 
 target_include_directories(nesting_graph PRIVATE
   src
-  ${CMAKE_SOURCE_DIR}/third_party/Clipper2/CPP/Clipper2Lib/include
   ${CMAKE_SOURCE_DIR}/third_party/json/include
 )
 
@@ -118,20 +96,17 @@ target_include_directories(nesting_graph PRIVATE
 target_link_libraries(nfpTest PRIVATE
   utils
   nfp_cgal
-  clipper2
   nlohmann_json::nlohmann_json
 )
 
 target_link_libraries(nfpGen PRIVATE
   utils
   nfp_cgal
-  clipper2
   nlohmann_json::nlohmann_json
 )
 
 target_link_libraries(nesting_graph PRIVATE
   utils
   nfp_cgal
-  clipper2
   nlohmann_json::nlohmann_json
 )

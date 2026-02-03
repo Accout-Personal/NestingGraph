@@ -164,7 +164,7 @@ typedef int ShapeID; // Simple alias for shape identifiers
             }
         }
 
-        return U_Open.closure();
+        return U_Open;
     }
     
 
