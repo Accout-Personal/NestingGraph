@@ -12,12 +12,12 @@
 #include <CGAL/Gmpz.h>
 #include <CGAL/Gmpq.h>
 #include <CGAL/number_utils.h>
-
+#include "NFPGenerator.hpp"
 #include <vector>
 #include <map>
 #include <iostream>
 #include <sstream>
-
+namespace nfp {
 // Kernel typedefs
 typedef CGAL::Exact_predicates_exact_constructions_kernel Kernel;
 typedef Kernel::Point_2                                   Point_2;
@@ -40,11 +40,8 @@ typedef Standard_kernel::Point_2                          Standard_point;
 typedef int ShapeID; // Simple alias for shape identifiers
 
 
-class NFPGeneratorCGAL {
-private:
-
     // Helper: Decompose a concave polygon into convex pieces
-    static std::vector<Polygon_2> decompose(const Polygon_2& p) {
+     std::vector<Polygon_2> decompose(const Polygon_2& p) {
         // Use partition traits polygons for output (they use std::list internally)
         if (p.is_convex()) {
             return { p };
@@ -73,7 +70,7 @@ private:
     }
 
     // Helper: Reflect polygon through origin (-B)
-    static Polygon_2 reflect_polygon(const Polygon_2& p) {
+     Polygon_2 reflect_polygon(const Polygon_2& p) {
         Polygon_2 p_reflected;
         for (auto vit = p.vertices_begin(); vit != p.vertices_end(); ++vit) {
             p_reflected.push_back(Point_2(-vit->x(), -vit->y()));
@@ -87,7 +84,7 @@ private:
     }
 
     // Helper: Convert EPECK point to Homogeneous<Gmpz> point
-    static Standard_point convert_to_standard_point(const Point_2& pt) {
+     Standard_point convert_to_standard_point(const Point_2& pt) {
         // Get the exact coordinates - EPECK::FT is a lazy wrapper around mpq_class
         // We use CGAL's exact() to get the underlying exact type, then convert via strings
         // to avoid direct mpq_class <-> Gmpq conversion issues
@@ -121,9 +118,9 @@ private:
         return Standard_point(hx, hy, hw);
     }
 
-public:
+
     // THE CORE PIPELINE
-    static Nef_polyhedron get_nfp(ShapeID idA, Polygon_2& polyA,
+     Nef_polyhedron get_nfp(ShapeID idA, Polygon_2& polyA,
         ShapeID idB, Polygon_2& polyB) {
 
         if (polyA.is_clockwise_oriented()) {
@@ -173,7 +170,7 @@ public:
     }
     
 
-    static std::vector<std::vector<std::pair<double,double>>>  processNFP(
+     std::vector<std::vector<std::pair<double,double>>>  processNFP(
             std::vector<std::pair<double,double>>& polyA, 
             std::vector<std::pair<double,double>>& polyB) {
         
@@ -266,6 +263,5 @@ public:
         }
         return nfp_polygons;
     }
-};
-
+}
 #endif // NFP_GENERATOR_H

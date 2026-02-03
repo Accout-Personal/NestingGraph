@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include "NFPGenerator.hpp"
+#include "nfp/NFPGenerator.hpp"
 
 using json = nlohmann::json;
 namespace NFPTool{
@@ -121,7 +121,7 @@ json processNFP(json &dataset,double height, double width)
                 polygonPairsRot.emplace_back(ov["x"],ov["y"]);
             }
             //auto nfpGen = NFPGeneratorCGAL();
-            auto outNfps = NFPGeneratorCGAL::processNFP(
+            auto outNfps = nfp::processNFP(
                 polygonPairsFixed, polygonPairsRot
             );
 
