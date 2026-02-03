@@ -77,18 +77,18 @@ json processNFP(json &dataset,double height, double width)
         GeometryUtil::BBox polyBBox = GeometryUtil::computeBoundingBox(fixedPoly);
 
         //Consider first point of the polygon as pivot.
-        double xPivot = fixedObj["VERTICES"][0]["x"].get<double>();
-        double yPivot = fixedObj["VERTICES"][0]["y"].get<double>();
+        double FixPolyxPivot = fixedObj["VERTICES"][0]["x"].get<double>();
+        double FixPolyyPivot = fixedObj["VERTICES"][0]["y"].get<double>();
 
         fixedObj["innerfit"] = json::array();
         //the pivot point must resides inside the bounding box.
         // thus always: >= than xMin, <= xMax >=yMin <= yMax
-        fixedObj["innerfit"].push_back({{"x", xPivot - polyBBox.xMin},{"y", yPivot - polyBBox.yMin}}); //Bottom left 
+        fixedObj["innerfit"].push_back({{"x", FixPolyxPivot - polyBBox.xMin},{"y", FixPolyyPivot - polyBBox.yMin}}); //Bottom left 
 
-        fixedObj["innerfit"].push_back({{"x", height - polyBBox.xMax + xPivot},{"y", yPivot - polyBBox.yMin}}); //Bottom right
+        fixedObj["innerfit"].push_back({{"x", height - polyBBox.xMax + FixPolyxPivot},{"y", FixPolyyPivot - polyBBox.yMin}}); //Bottom right
 
-        fixedObj["innerfit"].push_back({{"x", height- polyBBox.xMax + xPivot},{"y", width - polyBBox.yMax + yPivot}}); //Top right
-        fixedObj["innerfit"].push_back({{"x", xPivot - polyBBox.xMin},{"y",  width - polyBBox.yMax + yPivot}}); // Top left
+        fixedObj["innerfit"].push_back({{"x", height- polyBBox.xMax + FixPolyxPivot},{"y", width - polyBBox.yMax + FixPolyyPivot}}); //Top right
+        fixedObj["innerfit"].push_back({{"x", FixPolyxPivot - polyBBox.xMin},{"y",  width - polyBBox.yMax + FixPolyyPivot}}); // Top left
 
 
         // ---- Outer NFPs against all polygons ----
@@ -110,15 +110,19 @@ json processNFP(json &dataset,double height, double width)
             polygonPairsFixed.reserve(fixedObj["VERTICES"].size());
             std::vector<std::pair<double,double>> polygonPairsRot;
             polygonPairsRot.reserve(rotObj["VERTICES"].size());
+            double RotPolyxPivot = rotObj["VERTICES"][0]["x"].get<double>();
+            double RotPolyyPivot = rotObj["VERTICES"][0]["y"].get<double>();
 
             for (auto const &fv : fixedObj["VERTICES"])
             {
-                polygonPairsFixed.emplace_back(fv.at("x").get<double>(),fv.at("y").get<double>());
+                polygonPairsFixed.emplace_back(fv.at("x").get<double>()-FixPolyxPivot,fv.at("y").get<double>()-FixPolyyPivot);
+
             }
 
             for (auto const &ov : rotObj["VERTICES"])
             {
-                polygonPairsRot.emplace_back(ov.at("x").get<double>(),ov.at("y").get<double>());
+                polygonPairsRot.emplace_back(ov.at("x").get<double>()-RotPolyxPivot,ov.at("y").get<double>()-RotPolyyPivot);
+
             }
             //auto nfpGen = NFPGeneratorCGAL();
             auto outNfps = nfp::processNFP(
