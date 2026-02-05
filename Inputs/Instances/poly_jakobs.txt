@@ -21,7 +21,7 @@
             "length":14           
         },
         {
-            "dataset":poly1d.json,
+            "dataset":"poly1d.json",
             "outputName":"poly1d",
             "quantity":1,
             "width":40,
@@ -40,5 +40,5 @@
             "quantity":1,
             "width":40,
             "length":13           
-        },
+        }
     ]
