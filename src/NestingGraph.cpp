@@ -530,7 +530,7 @@ int main(int argc, char** argv) {
             inputPaths.push_back(argv[argi + 1]);
         } else if (key == "--outputdir") {
             outputdir = argv[argi + 1];
-        } else if (key == "--type_oriented") {
+        } else if (key == "--typeOriented") {
             type_oriented = parse_bool(argv[argi + 1]);
             type_oriented_param = true;
         } else if (key == "--cliqueCovering") {
