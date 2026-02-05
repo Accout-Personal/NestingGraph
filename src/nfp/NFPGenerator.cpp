@@ -128,7 +128,29 @@ typedef int ShapeID; // Simple alias for shape identifiers
         CGAL::Gmpz hw = x_den * y_den;
         
         return Standard_point(hx, hy, hw);
-    }
+     }
+
+     static void sanitize_polygon(Polygon_2& p) {
+         if (p.size() < 2) return;
+
+         // Remove last if equals first
+         while (p.size() >= 2 && *p.vertices_begin() == *std::prev(p.vertices_end())) {
+             p.erase(std::prev(p.vertices_end()));
+         }
+
+         // Remove consecutive duplicates
+         auto it = p.vertices_begin();
+         while (it != p.vertices_end() && p.size() > 1) {
+             auto next = std::next(it);
+             if (next == p.vertices_end()) next = p.vertices_begin();
+             if (*it == *next && next != p.vertices_begin()) {
+                 it = p.erase(next);
+             }
+             else {
+                 ++it;
+             }
+         }
+     }
 
 
     // THE CORE PIPELINE
@@ -161,8 +183,8 @@ typedef int ShapeID; // Simple alias for shape identifiers
 
         for (const auto& subA : partsA) {
             for (const auto& subB : partsB) {
-                Polygon_2 sum = CGAL::minkowski_sum_2(subA, subB).outer_boundary();
 
+                auto sum = CGAL::minkowski_sum_2(subA, subB).outer_boundary();
                 std::vector<Standard_point> pts;
                 for (auto v = sum.vertices_begin(); v != sum.vertices_end(); ++v)
                     pts.push_back(convert_to_standard_point(*v));
@@ -173,7 +195,7 @@ typedef int ShapeID; // Simple alias for shape identifiers
         }
 
         return U_Open;
-    }
+     }
     
 
      std::vector<std::vector<std::pair<double,double>>>  processNFP(
@@ -189,6 +211,24 @@ typedef int ShapeID; // Simple alias for shape identifiers
             cgalPolyB.push_back(Point_2(p.first, p.second));
         }
 
+        //trying to sanitize polygon
+
+        sanitize_polygon(cgalPolyA);
+        sanitize_polygon(cgalPolyB);
+
+
+        if (!cgalPolyA.is_simple())
+        {
+            std::cerr << "ERROR: Polygon A (fixed Polygon) is not simple!" << std::endl;
+            exit(-1);
+        }
+
+
+        if (!cgalPolyB.is_simple())
+        {
+            std::cerr << "ERROR: Polygon B (rotating Polygon) is not simple!" << std::endl;
+            exit(-1);
+        }
         
 
         //ensure orientation is counter clockwise
