@@ -1,8 +1,32 @@
 #include "geometry_util.hpp"
 #include <cmath>
 #include <algorithm>
-
+#include <nlohmann/json.hpp>
+#include <iostream>
+using json = nlohmann::json;
 namespace GeometryUtil {
+
+    
+// ---------- JSON helpers ----------
+Polygon parseVertices(const json& j) {
+    GeometryUtil::Polygon poly;
+    if (!j.is_array()) return poly;
+
+    poly.reserve(j.size());
+    for (const auto& pt : j) {
+        if (!pt.is_object()) continue;
+        GeometryUtil::Point p;
+        try{
+            p.x = pt.at("x").get<double>();
+            p.y = pt.at("y").get<double>();
+            poly.push_back(p);
+        }catch(const std::exception& e){
+            std::cerr << "ERROR: parse vertices failed! (make sure the vertices \"x\" and \"y\" are valid numerical values)" << std::endl;
+            exit(-1);
+        }
+    }
+    return poly;
+}
 
 static bool almostEqual(double a, double b, double tol = TOL) {
     return std::abs(a - b) < tol;
@@ -166,6 +190,58 @@ static bool samePoint(const GeometryUtil::Point& a,
     return std::abs(a.x - b.x) <= eps && std::abs(a.y - b.y) <= eps;
 }
 
+static bool pointLess(const Point& a, const Point& b) {
+    if (!almostEqual(a.x ,b.x)) return a.x < b.x;
+    return a.y < b.y;
+}
+
+static void stripClosingPoint(Polygon& p) {
+    if (p.size() >= 2 && samePoint(p.front(),p.back())) p.pop_back();
+}
+
+static void removeConsecutiveDuplicates(Polygon& p) {
+    if (p.empty()) return;
+    Polygon out;
+    out.reserve(p.size());
+    out.push_back(p[0]);
+    for (size_t i = 1; i < p.size(); ++i) {
+        if (!samePoint(p[i],out.back())) out.push_back(p[i]);
+    }
+    p.swap(out);
+}
+
+static Polygon rotateToSmallest(const Polygon& p) {
+    if (p.empty()) return p;
+    auto it = std::min_element(p.begin(), p.end(), pointLess);
+    Polygon out;
+    out.reserve(p.size());
+    out.insert(out.end(), it, p.end());
+    out.insert(out.end(), p.begin(), it);
+    return out;
+}
+
+static Polygon canonical(Polygon p) {
+    stripClosingPoint(p);
+    removeConsecutiveDuplicates(p);
+    return rotateToSmallest(p);
+}
+
+bool samePolygonVertices(Polygon A,
+                         Polygon B,
+                         bool allowReverse = true){
+    auto A0 = canonical(std::move(A));
+    auto B0 = canonical(std::move(B));
+
+    if (A0.size() != B0.size()) return false;
+    if (A0 == B0) return true;
+
+    if (!allowReverse) return false;
+
+    // Canonicalize reversed B
+    std::reverse(B0.begin(), B0.end());
+    B0 = rotateToSmallest(B0);
+    return A0 == B0;
+}
 
 
 } // namespace GeometryUtil

@@ -486,6 +486,39 @@ static bool parse_bool(const char* s) {
     throw std::invalid_argument("Expected boolean (0/1/true/false), got: " + v);
 }
 
+unordered_map<string,string> makeDuplicateDatasetMap(json &polydataset){
+    vector<string> keylist;
+    unordered_map<string,GeometryUtil::Polygon> polygons;
+    for (auto [k,v]:polydataset.items()){
+        polygons[k] = GeometryUtil::parseVertices(v["VERTICES"]);
+        keylist.push_back(k);
+    }
+    unordered_map<string,string> finalMap;
+    vector<string> removeList;
+    for (auto polyA:keylist){
+        for (auto polyB:keylist){
+            if (polyA == polyB) continue;
+            if (samePolygonVertices(polygons[polyA],polygons[polyB]))
+            {
+                if(finalMap.find(polyB)!=finalMap.end()){
+                    //B hasnt been processed, so we points polyA to polyB and add polyA at remove list
+                    finalMap[polyA] = polyB;
+                    removeList.push_back(polyA)
+                } // Otherwise the B is already been processed, so only points back to self.
+            }
+        }
+        if(finalMap.find(polyB)!=finalMap.end()){
+            finalMap[polyA] = polyA;
+        }
+    }
+
+    for (auto rem:removeList){
+        polydataset.erase(rem);
+    }
+
+    return finalMap;
+}
+
 int main(int argc, char** argv) {
     auto dir_path = executable_path_from_argv0(argv[0]).parent_path();
     const string Usagephrase = "--instances <file|dir> Loads one instance JSON file, or a directory of instance JSON files. repeat for multiple file/directory nested directory will be ingnored.\n"
@@ -678,6 +711,10 @@ int main(int argc, char** argv) {
         dataset.erase("rect");
         dataset.erase("length");
         dataset.erase("width");
+
+        //In case of Dataset with duplicated polygons we merge them by mapping one of them into another.
+        unordered_map<string,string> DuplicatePolyMap;
+
 
 
         json polygons;

@@ -33,9 +33,6 @@ struct Bounds {
 
 Bounds getPolygonBounds(const Polygon& polygon);
 bool isRectangle(const Polygon& polygon, double tolerance = TOL);
-
-// (your existing declarations)
-Polygons minkowskiDifference(const Polygon& A, const Polygon& B, double scale = 1e7);
-Polygons noFitPolygonLite(const Polygon& A, const Polygon& B, bool inside, bool searchEdges);
+Polygon parseVertices(const json& j);
 
 } // namespace GeometryUtil

@@ -6,21 +6,6 @@
 
 using json = nlohmann::json;
 namespace NFPTool{
-// ---------- JSON helpers ----------
-GeometryUtil::Polygon parseVertices(const json& j) {
-    GeometryUtil::Polygon poly;
-    if (!j.is_array()) return poly;
-
-    poly.reserve(j.size());
-    for (const auto& pt : j) {
-        if (!pt.is_object()) continue;
-        GeometryUtil::Point p;
-        p.x = pt.value("x", 0.0);
-        p.y = pt.value("y", 0.0);
-        poly.push_back(p);
-    }
-    return poly;
-}
 
 static json dumpVertices(const GeometryUtil::Polygon& p) {
     json arr = json::array();
@@ -33,8 +18,6 @@ static json dumpVertices(const GeometryUtil::Polygon& p) {
 static bool hasVerticesObject(const json& obj) {
     return obj.is_object() && obj.contains("VERTICES") && obj["VERTICES"].is_array();
 }
-
-
 
 
 json processNFP(json &dataset,double height, double width)
@@ -64,7 +47,7 @@ json processNFP(json &dataset,double height, double width)
     for (const auto& fixedKey : polyKeys) {
         auto& fixedObj = dataset[fixedKey];
 
-        GeometryUtil::Polygon fixedPoly = parseVertices(fixedObj["VERTICES"]);
+        GeometryUtil::Polygon fixedPoly = GeometryUtil::parseVertices(fixedObj["VERTICES"]);
         if (fixedPoly.size() < 3) {
             // Keep structure but empty results
             fixedObj["innerfit"] = json::array();
@@ -81,12 +64,10 @@ json processNFP(json &dataset,double height, double width)
         double FixPolyyPivot = fixedObj["VERTICES"][0]["y"].get<double>();
 
         fixedObj["innerfit"] = json::array();
-        //the pivot point must resides inside the bounding box.
+        //the pivot point must resides inside or on the boundary of the bounding box.
         // thus always: >= than xMin, <= xMax >=yMin <= yMax
         fixedObj["innerfit"].push_back({{"x", FixPolyxPivot - polyBBox.xMin},{"y", FixPolyyPivot - polyBBox.yMin}}); //Bottom left 
-
         fixedObj["innerfit"].push_back({{"x", height - polyBBox.xMax + FixPolyxPivot},{"y", FixPolyyPivot - polyBBox.yMin}}); //Bottom right
-
         fixedObj["innerfit"].push_back({{"x", height- polyBBox.xMax + FixPolyxPivot},{"y", width - polyBBox.yMax + FixPolyyPivot}}); //Top right
         fixedObj["innerfit"].push_back({{"x", FixPolyxPivot - polyBBox.xMin},{"y",  width - polyBBox.yMax + FixPolyyPivot}}); // Top left
 
