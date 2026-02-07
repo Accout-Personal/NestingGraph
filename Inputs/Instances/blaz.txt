@@ -48,5 +48,5 @@
             "quantity":5,
             "width":15,
             "length":36           
-        },
+        }
     ]

@@ -14,14 +14,14 @@
             "length":24           
         },
         {
-            "dataset":"fu7.json"
+            "dataset":"fu7.json",
             "outputName":"fu7",
             "quantity":1,
             "width":38,
             "length":24           
         },
         {
-            "dataset":fu8.json,
+            "dataset":"fu8.json",
             "outputName":"fu8",
             "quantity":1,
             "width":38,
@@ -35,7 +35,7 @@
             "length":29           
         },
         {
-            "dataset":"fu10.json"
+            "dataset":"fu10.json",
             "outputName":"fu10",
             "quantity":1,
             "width":38,
@@ -47,5 +47,5 @@
             "quantity":1,
             "width":38,
             "length":38           
-        },
+        }
     ]
