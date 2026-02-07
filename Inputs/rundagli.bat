@@ -8,7 +8,7 @@ if "%ROOT:~-1%"=="\" set "ROOT=%ROOT:~0,-1%"
 
 set "EXE=%ROOT%\build-static\Release\nesting_graph.exe"
 set "DATASETS=%ROOT%\Inputs\dataset"
-set "INSTANCES=%ROOT%\Inputs\Instances\dagli.txt"
+set "INSTANCES=%ROOT%\Inputs\problematic\dagli.txt"
 
 REM Existence checks
 if not exist "%EXE%" (
@@ -27,12 +27,11 @@ if not exist "%INSTANCES%" (
 echo Running: "%EXE%"
 echo   --datasets  "%DATASETS%"
 echo   --instances "%INSTANCES%"
-echo   --typeOriented 1
-echo   --CliqueCovering 1
+echo   --type_oriented 1
 echo.
 
 REM Run (merge stderr into stdout)
-"%EXE%" --datasets "%DATASETS%" --instances "%INSTANCES%" --typeOriented 1 --cliqueCovering 1 2>&1
+"%EXE%" --datasets "%DATASETS%" --instances "%INSTANCES%" --type_oriented 1 2>&1
 
 set "CODE=%ERRORLEVEL%"
 echo.

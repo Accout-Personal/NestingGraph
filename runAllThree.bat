@@ -8,7 +8,7 @@ if "%ROOT:~-1%"=="\" set "ROOT=%ROOT:~0,-1%"
 
 set "EXE=%ROOT%\build-static\Release\nesting_graph.exe"
 set "DATASETS=%ROOT%\Inputs\dataset"
-set "INSTANCES=%ROOT%\Inputs\Instances\dagli.txt"
+set "INSTANCES=%ROOT%\Inputs\Instances\three.txt"
 
 REM Existence checks
 if not exist "%EXE%" (
