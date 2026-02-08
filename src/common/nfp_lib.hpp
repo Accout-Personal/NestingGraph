@@ -6,6 +6,4 @@ using json = nlohmann::json;
 namespace NFPTool{
 
     json processNFP(json &dataset,double height, double width);
-    GeometryUtil::Polygon parseVertices(const json& j);
-
 }

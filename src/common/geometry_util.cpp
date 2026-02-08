@@ -8,7 +8,7 @@ namespace GeometryUtil {
 
     
 // ---------- JSON helpers ----------
-Polygon parseVertices(const json& j) {
+ GeometryUtil::Polygon parseVertices(const json& j) {
     GeometryUtil::Polygon poly;
     if (!j.is_array()) return poly;
 
@@ -228,7 +228,7 @@ static Polygon canonical(Polygon p) {
 
 bool samePolygonVertices(Polygon A,
                          Polygon B,
-                         bool allowReverse = true){
+                         bool allowReverse){
     auto A0 = canonical(std::move(A));
     auto B0 = canonical(std::move(B));
 

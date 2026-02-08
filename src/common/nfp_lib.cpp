@@ -78,7 +78,7 @@ json processNFP(json &dataset,double height, double width)
         for (const auto& rotKey : polyKeys) {
             auto& rotObj = dataset[rotKey];
 
-            GeometryUtil::Polygon rotPoly = parseVertices(rotObj["VERTICES"]);
+            GeometryUtil::Polygon rotPoly = GeometryUtil::parseVertices(rotObj["VERTICES"]);
             if (rotPoly.size() < 3) {
                 // Still push entry to match original style? Optional.
                 json nfpEntry;

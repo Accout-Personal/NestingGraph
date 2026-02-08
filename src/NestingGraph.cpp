@@ -109,7 +109,7 @@ static inline void buildNfpPatternsForPoly(
         //Compute Bounding Box of NFP
         GeometryUtil::BBox nfpBBox = computeBoundingBox(verts);
 
-        const auto polyVerts = NFPTool::parseVertices(verts);
+        const auto polyVerts = GeometryUtil::parseVertices(verts);
 
         const int iStart = static_cast<int>(std::floor(nfpBBox.xMin / gx)) - 1;
         const int iEnd   = static_cast<int>(std::ceil (nfpBBox.xMax / gx)) + 3;
@@ -238,7 +238,7 @@ static inline LayersResult generateLayers(
         unsigned int quantity = mainPiece.value("QUANTITY", 1);
         if (type_oriented && quantity > 1) quantity = 1;
 
-        const GeometryUtil:: Polygon innerfit = NFPTool::parseVertices(mainPiece.at("innerfit"));
+        const GeometryUtil:: Polygon innerfit = GeometryUtil::parseVertices(mainPiece.at("innerfit"));
         const double innerFitArea = std::abs(GeometryUtil::polygonArea(innerfit));
         
         const double boardArea = length * width;
@@ -486,7 +486,7 @@ static bool parse_bool(const char* s) {
     throw std::invalid_argument("Expected boolean (0/1/true/false), got: " + v);
 }
 
-unordered_map<string,string> makeDuplicateDatasetMap(json &polydataset){
+unordered_map<string,string> MapDuplicateDataset(json &polydataset){
     vector<string> keylist;
     unordered_map<string,GeometryUtil::Polygon> polygons;
     for (auto [k,v]:polydataset.items()){
@@ -498,22 +498,17 @@ unordered_map<string,string> makeDuplicateDatasetMap(json &polydataset){
     for (auto polyA:keylist){
         for (auto polyB:keylist){
             if (polyA == polyB) continue;
-            if (samePolygonVertices(polygons[polyA],polygons[polyB]))
-            {
+            if (GeometryUtil::samePolygonVertices(polygons[polyA],polygons[polyB]) && abs(GeometryUtil::polygonArea(polygons[polyA])) == abs(GeometryUtil::polygonArea(polygons[polyB]))){
                 if(finalMap.find(polyB)!=finalMap.end()){
                     //B hasnt been processed, so we points polyA to polyB and add polyA at remove list
                     finalMap[polyA] = polyB;
-                    removeList.push_back(polyA)
+                    removeList.push_back(polyA);
                 } // Otherwise the B is already been processed, so only points back to self.
             }
         }
-        if(finalMap.find(polyB)!=finalMap.end()){
+        if(finalMap.find(polyA)==finalMap.end()){
             finalMap[polyA] = polyA;
         }
-    }
-
-    for (auto rem:removeList){
-        polydataset.erase(rem);
     }
 
     return finalMap;
@@ -713,9 +708,43 @@ int main(int argc, char** argv) {
         dataset.erase("width");
 
         //In case of Dataset with duplicated polygons we merge them by mapping one of them into another.
-        unordered_map<string,string> DuplicatePolyMap;
+        std::cout << "Duplicate map processing..\n";
+        //std::cout << dataset.dump(1) << "\n";
+        unordered_map<string, string> DuplicatePolyMap = MapDuplicateDataset(dataset);
 
+        for (const auto& [key, value] : DuplicatePolyMap) {   // structured bindings (C++17)
+            std::cout << key << " -> " << value << "\n";
+        }
+        
+        if (set.contains("quantity")){
+            //Override the quantity field of dataset to 0
+            for (auto& [key, val] : dataset.items()){
+                dataset[DuplicatePolyMap.at(key)]["QUANTITY"] = 0;
+            }
 
+            if(set["quantity"].is_number_unsigned()) {
+                for (auto& [key, val] : dataset.items()){
+                    dataset[DuplicatePolyMap.at(key)]["QUANTITY"] = dataset[DuplicatePolyMap.at(key)]["QUANTITY"].get<unsigned int>() + set["quantity"].get<unsigned int>();
+                }
+            }
+            else{
+                for (auto& [key, val] : set["quantity"].items()){
+                    dataset[DuplicatePolyMap.at(key)]["QUANTITY"] = dataset[DuplicatePolyMap.at(key)]["QUANTITY"].get<unsigned int>() + set["quantity"][DuplicatePolyMap.at(key)].get<unsigned int>();
+                }
+            }
+
+            //Remove the polygon from dataset with 0 quantity
+            vector<string> removeList;
+            for (auto& [key, val] : dataset.items()){
+                if(dataset[DuplicatePolyMap.at(key)]["QUANTITY"].get<unsigned int>() == 0) removeList.push_back(DuplicatePolyMap.at(key));
+            }
+
+            for (auto key:removeList)
+            {
+                dataset.erase(DuplicatePolyMap.at(key));
+            }
+            
+        }
 
         json polygons;
         try {
@@ -736,25 +765,14 @@ int main(int argc, char** argv) {
 
         //quantity can either be a single unsigned int for all polygons or a dictionary of per-polygon quantities
 
-        if (set.contains("quantity")){
-            if(set["quantity"].is_number_unsigned()) {
-                for (auto& [key, val] : polygons.items()){
-                    polygons[key]["QUANTITY"] = set["quantity"].get<unsigned int>();
-                }
-            }
-            else{
-                for (auto& [key, val] : set["quantity"].items()){
-                    polygons[key]["QUANTITY"] = set["quantity"][key].get<unsigned int>();
-                }
-            }
-        }
+        
 
         int total_polygon = 0;
         double total_area = 0.0;
 
         for (auto& [key, val] : polygons.items()){
             total_polygon += polygons[key]["QUANTITY"].get<unsigned int>();
-            total_area += polygons[key]["QUANTITY"].get<double>() * std::abs(GeometryUtil::polygonArea(NFPTool::parseVertices(polygons[key]["VERTICES"])));
+            total_area += polygons[key]["QUANTITY"].get<double>() * std::abs(GeometryUtil::polygonArea(GeometryUtil::parseVertices(polygons[key]["VERTICES"])));
         }
 
         NfpPosTableT NfpPosTable;
@@ -781,70 +799,10 @@ int main(int argc, char** argv) {
             poly["innerfit_BoundingBox"]["yMin"] = floor(Innerbbox.yMin / gy);
             poly["innerfit_BoundingBox"]["yMax"] = ceil(Innerbbox.yMax / gy);
 
-            //Generate NFP Pattern 
-
-            
+            //Generate NFP Pattern             
             //std::cout << "Genering NFP pattern for " << key << " \n";
             buildNfpPatternsForPoly(key,poly,pivot,gx,gy,NfpIndexTable,NfpPosTable);
             
-            /*
-            for (auto& nfp : poly.at("nfps")) {
-                std::cout << "  nfp original: " << nfp.at("VERTICES").dump() << "\n";
-
-                double vxMax = std::numeric_limits<double>::lowest();
-                double vxMin =  std::numeric_limits<double>::max();
-                double vyMax = std::numeric_limits<double>::lowest();
-                double vyMin =  std::numeric_limits<double>::max();
-
-                // for v in nfp['VERTICES']: v -= Pivot; update min/max
-                for (auto& v : nfp.at("VERTICES")) {
-                    v["x"] = v.at("x").get<double>() - pivot.at("x").get<double>();
-                    v["y"] = v.at("y").get<double>() - pivot.at("y").get<double>();
-
-                    const double x = v.at("x").get<double>();
-                    const double y = v.at("y").get<double>();
-
-                    if (x > vxMax) vxMax = x;
-                    if (x < vxMin) vxMin = x;
-                    if (y > vyMax) vyMax = y;
-                    if (y < vyMin) vyMin = y;
-                }
-
-                
-                const int iStart = floor(vxMin / gx) - 1;
-                const int iEnd   = ceil(vxMax / gx) + 3;
-                const int jStart = floor(vyMin / gy) - 1;
-                const int jEnd   = ceil(vyMax / gy) + 3;
-
-                for (int i = iStart; i < iEnd; ++i) {
-                    for (int j = jStart; j < jEnd; ++j) {
-                        const double tx = static_cast<double>(i) * gx;
-                        const double ty = static_cast<double>(j) * gy;
-
-                        // if key == 'PIECE 4' and nfp['POLYGON'] == 'PIECE 5': print testpoint
-                        if (key == "PIECE 4" && nfp.value("POLYGON", "") == "PIECE 5") {
-                            cout << " testing point: {\"x\":" << tx << ",\"y\":" << ty << "}\n";
-                        }
-                        
-                        // res = point_in_polygon(testpoint, nfpVertices)
-                        if (GeometryUtil::pointInPolygon(GeometryUtil::Point{tx,ty}, NFPTool::parseVertices(nfp.at("VERTICES"))) == 1) {
-                            // nfp_pattern.append([i*gx,j*gy,i,j]) then cast to int16
-                            // NOTE: i*gx and j*gy are doubles; Python stores them, then np.int16 casts.
-                            // Here we mimic by truncating toward 0 before int16.
-                            const int16_t ii = static_cast<int16_t>(i);
-                            const int16_t jj = static_cast<int16_t>(j);
-                            
-                            pattern.push_back({ii, jj});
-                            pattern_pos.push_back({tx, ty});
-                        }
-                    }
-                }
-                
-                NfpIndexTable[key][nfp.at("POLYGON").get<std::string>()] = move(pattern);
-                NfpPosTable[key][nfp.at("POLYGON").get<std::string>()] = move(pattern_pos);
-
-            }
-            */
         }
         //generate Layer points (vertex)
         //std::cout << "Generating layer vertices\n";
