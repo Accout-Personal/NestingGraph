@@ -712,9 +712,9 @@ int main(int argc, char** argv) {
         //std::cout << dataset.dump(1) << "\n";
         unordered_map<string, string> DuplicatePolyMap = MapDuplicateDataset(dataset);
 
-        for (const auto& [key, value] : DuplicatePolyMap) {   // structured bindings (C++17)
-            std::cout << key << " -> " << value << "\n";
-        }
+        //for (const auto& [key, value] : DuplicatePolyMap) {   // structured bindings (C++17)
+        //    std::cout << key << " -> " << value << "\n";
+        //}
         
         if (set.contains("quantity")){
             //Override the quantity field of dataset to 0
@@ -747,9 +747,9 @@ int main(int argc, char** argv) {
             
         }
 
-        for (auto& [key, val] : dataset.items()){
-            std::cout << key << " " << (dataset[key]["QUANTITY"]) << "\n";
-        }
+        //for (auto& [key, val] : dataset.items()){
+        //    std::cout << key << " " << (dataset[key]["QUANTITY"]) << "\n";
+        //}
 
         json polygons;
         try {
@@ -769,8 +769,6 @@ int main(int argc, char** argv) {
         size_t num_polygon = polygons.size();
 
         //quantity can either be a single unsigned int for all polygons or a dictionary of per-polygon quantities
-
-        
 
         int total_polygon = 0;
         double total_area = 0.0;
