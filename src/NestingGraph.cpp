@@ -712,9 +712,9 @@ int main(int argc, char** argv) {
         //std::cout << dataset.dump(1) << "\n";
         unordered_map<string, string> DuplicatePolyMap = MapDuplicateDataset(dataset);
 
-        for (const auto& [key, value] : DuplicatePolyMap) {   // structured bindings (C++17)
-            std::cout << key << " -> " << value << "\n";
-        }
+        //for (const auto& [key, value] : DuplicatePolyMap) {   // structured bindings (C++17)
+        //    std::cout << key << " -> " << value << "\n";
+        //}
         
         if (set.contains("quantity")){
             //Override the quantity field of dataset to 0
