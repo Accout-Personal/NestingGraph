@@ -712,9 +712,9 @@ int main(int argc, char** argv) {
         //std::cout << dataset.dump(1) << "\n";
         unordered_map<string, string> DuplicatePolyMap = MapDuplicateDataset(dataset);
 
-        //for (const auto& [key, value] : DuplicatePolyMap) {   // structured bindings (C++17)
-        //    std::cout << key << " -> " << value << "\n";
-        //}
+        for (const auto& [key, value] : DuplicatePolyMap) {   // structured bindings (C++17)
+            std::cout << key << " -> " << value << "\n";
+        }
         
         if (set.contains("quantity")){
             //Override the quantity field of dataset to 0
@@ -729,21 +729,26 @@ int main(int argc, char** argv) {
             }
             else{
                 for (auto& [key, val] : set["quantity"].items()){
-                    dataset[DuplicatePolyMap.at(key)]["QUANTITY"] = dataset[DuplicatePolyMap.at(key)]["QUANTITY"].get<unsigned int>() + set["quantity"][DuplicatePolyMap.at(key)].get<unsigned int>();
+                    dataset[DuplicatePolyMap.at(key)]["QUANTITY"] = dataset[DuplicatePolyMap.at(key)]["QUANTITY"].get<unsigned int>() + set["quantity"][key].get<unsigned int>();
                 }
             }
+
 
             //Remove the polygon from dataset with 0 quantity
             vector<string> removeList;
             for (auto& [key, val] : dataset.items()){
-                if(dataset[DuplicatePolyMap.at(key)]["QUANTITY"].get<unsigned int>() == 0) removeList.push_back(DuplicatePolyMap.at(key));
+                if(val["QUANTITY"].get<unsigned int>() == 0) removeList.push_back(key);
             }
 
             for (auto key:removeList)
             {
-                dataset.erase(DuplicatePolyMap.at(key));
+                dataset.erase(key);
             }
             
+        }
+
+        for (auto& [key, val] : dataset.items()){
+            std::cout << key << " " << (dataset[key]["QUANTITY"]) << "\n";
         }
 
         json polygons;
