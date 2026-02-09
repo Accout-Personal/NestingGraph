@@ -719,7 +719,7 @@ int main(int argc, char** argv) {
         if (set.contains("quantity")){
             //Override the quantity field of dataset to 0
             for (auto& [key, val] : dataset.items()){
-                dataset[DuplicatePolyMap.at(key)]["QUANTITY"] = 0;
+                dataset[key]["QUANTITY"] = 0;
             }
 
             if(set["quantity"].is_number_unsigned()) {
