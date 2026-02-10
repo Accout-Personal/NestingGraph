@@ -1,6 +1,9 @@
 [submodule "third_party/json"]
 	path = third_party/json
 	url = https://github.com/nlohmann/json
-[submodule "third_party/vcpkg"]
-	path = third_party/vcpkg
-	url = https://github.com/microsoft/vcpkg
+[submodule "third_party/cgal"]
+	path = third_party/cgal
+	url = https://github.com/Nj0be/cgal
+[submodule "third_party/boost"]
+	path = third_party/boost
+	url = https://github.com/boostorg/boost

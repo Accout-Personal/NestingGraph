@@ -8,7 +8,12 @@ To build the project first clone the repository and pull all the submodules:
 git clone https://github.com/Accout-Personal/NestingGraph
 cd NestingGraph
 git submodule update --init --recursive
-
+cd third_party/boost
+mkdir build
+mkdir boost_install
+cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=../boost_install
+cmake --build . --target install --config Release
 ```
 
 For linux

@@ -28,8 +28,6 @@ add_library(utils STATIC
   src/common/nfp_lib.cpp
 )
 
-find_package(CGAL CONFIG REQUIRED)
-
 add_library(nfp_cgal SHARED
   src/nfp/NFPGenerator.cpp
 )
@@ -60,6 +58,16 @@ target_include_directories(utils PRIVATE
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 set(JSON_Install OFF CACHE INTERNAL "")
 add_subdirectory(third_party/json)
+
+# Path to Boost headers
+set(BOOST_ROOT "${CMAKE_SOURCE_DIR}/third_party/boost")
+set(Boost_INCLUDE_DIR "${BOOST_ROOT}/boost_install/include")
+
+# Find Boost components CGAL needs
+find_package(Boost REQUIRED COMPONENTS filesystem regex thread)
+
+set(CGAL_DIR "${CMAKE_SOURCE_DIR}/third_party/cgal")
+find_package(CGAL REQUIRED QUIET OPTIONAL_COMPONENTS Core )
 
 add_executable(nfpGen
   src/NFPGen.cpp

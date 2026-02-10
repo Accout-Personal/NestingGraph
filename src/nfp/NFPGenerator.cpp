@@ -50,20 +50,32 @@ typedef int ShapeID; // Simple alias for shape identifiers
 
         std::vector<Partition_polygon> partition_parts;
 
-        CGAL::approx_convex_partition_2(
+        //CGAL::approx_convex_partition_2(
+        //    p.vertices_begin(), 
+        //    p.vertices_end(), 
+        //    std::back_inserter(partition_parts),
+        //    Partition_traits());
+
+        
+        //OPTIMAL DECOMPOSITION IS BUGGED! DO NOT USE.
+        CGAL::optimal_convex_partition_2(
             p.vertices_begin(), 
             p.vertices_end(), 
             std::back_inserter(partition_parts),
             Partition_traits());
-
         
-        //OPTIMAL DECOMPOSITION IS BUGGED! DO NOT USE.
-        //CGAL::optimal_convex_partition_2(
-        //    p.vertices_begin(), 
-        //    p.vertices_end(), 
-        //    std::back_inserter(partition_parts),
-        //    Partition_traits());  // Pass the traits!
-
+        for (auto p:partition_parts)
+        {
+            if (!p.is_simple())
+            {
+                std::cerr << "ERROR: Polygon is not simple!" << std::endl;
+                for (auto v:p)
+                {
+                    std::cerr << "x: " << v.x() << " y: " << v.y() << "\n";
+                }
+                exit(-1);
+            }
+        }
         
     
         // Convert partition polygons (list-based) to our Polygon_2 (vector-based)

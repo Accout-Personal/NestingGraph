@@ -493,6 +493,55 @@ void testSimple() {
 }
 
 
+void testCritical() {
+    std::cout << "\n" << std::string(70, '=') << "\n";
+    std::cout << "TEST Critical polygon with itself.\n";
+    std::cout << std::string(70, '=') << "\n\n";
+
+    // L-1
+    std::vector<Point> verts_a = {
+        Point(0, 0),
+        Point(6, 0),
+        Point(4, 2),
+        Point(4, 4),
+        Point(6, 6),
+        Point(0, 6),
+        Point(2, 4),
+        Point(2, 2)
+    };
+
+    // L-2
+    std::vector<Point> verts_b = {
+        Point(0, 0),
+        Point(6, 0),
+        Point(4, 2),
+        Point(4, 4),
+        Point(6, 6),
+        Point(0, 6),
+        Point(2, 4),
+        Point(2, 2)
+    };
+
+    Polygon poly_a(verts_a);
+    Polygon poly_b(verts_b);
+
+    printPolygon("Polygon A (L-shape)", poly_a);
+    printPolygon("Polygon B (L-shape)", poly_b);
+
+    
+    auto nfp = nfp::processNFP(poly_a, poly_b);
+
+    printNFP(nfp);
+
+    // Verify no self-intersection
+    
+    if (!nfp.empty()) {
+        std::cout << "NFP generated successfully with " << nfp[0].size() << " vertices\n";
+        std::cout << "Visual inspection needed to verify correctness.\n";
+    }
+}
+
+
 int main() {
     std::cout << "NestingGraph NFP Test Program\n";
     //test2_L_shape_square();
@@ -500,6 +549,6 @@ int main() {
     //test4();
     //test5();
     //test6();
-    testSimple();
+    testCritical();
     return 0;
 }
