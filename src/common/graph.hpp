@@ -12,11 +12,13 @@ private:
     uint32_t numVertices;
     uint64_t numberEdges = 0;
     std::vector<std::vector<bool>> adjacencyMatrix;
+    std::vector<bool>NodeRemoved;
 
 public:
     // Constructor
     Graph(uint32_t n) : numVertices(n) {
         adjacencyMatrix.resize(n, std::vector<bool>(n, false));
+        NodeRemoved.resize(n,false);
     }
 
     // Add an edge to the graph
@@ -51,6 +53,22 @@ public:
         }
         return neighbors;
     }
+
+    //remove an Node
+    void removeNodes(std::vector<uint32_t> vlist){
+        for (auto v: vlist){
+            if (!NodeRemoved[v]){
+                for (auto n:getNeighbors(v)){
+                    adjacencyMatrix[n][v] = true;
+                    adjacencyMatrix[v][n] = true;
+                    numberEdges--;
+                }
+                numVertices--;
+                NodeRemoved[v] = true;
+            }                
+        }
+    }
+
 
     // Get the degree of a vertex
     int getDegree(uint32_t v) const {

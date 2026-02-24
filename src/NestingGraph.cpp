@@ -39,10 +39,9 @@ bool is_existing_directory(const std::string& s) {
     return std::filesystem::is_directory(std::filesystem::path(s), ec) && !ec;
 }
 
-
+ // polygons can be any JSON value (array/object)
 void writeNfpInfpJson(const std::string& outputdir,
-                      const nlohmann::json& polygons)  // polygons can be any JSON value (array/object)
-{
+                      const nlohmann::json& polygons){
     // if not os.path.exists(outputdir): os.mkdir(outputdir)
     if (!fs::exists(outputdir)) {
         fs::create_directories(outputdir); // like mkdir, but also creates parents if needed
@@ -154,8 +153,7 @@ struct GenPoint {
 
 // board: JSON array of {"x":..., "y":...}
 static inline std::vector<GenPoint>
-generatePoints(double length,double width, double freq)
-{
+generatePoints(double length,double width, double freq){
     if (freq == 0.0) {
         throw std::invalid_argument("error: freq must be non-zero");
     }
@@ -220,8 +218,8 @@ static inline LayersResult generateLayers(
     double gy,
     double length,
     double width,
-    bool type_oriented
-) {
+    bool type_oriented){
+
     LayersResult out;
 
     int layer = 0;
@@ -522,7 +520,12 @@ int main(int argc, char** argv) {
                "--typeOriented <0|1> [optional, default false] \n"
                "--cliqueCovering <0|1> [optional, default false] \n"
                "--width <number> [optional, mandatory if dataset doenst contain it] ignored if specified in json \n"
-               "--length <number>[optional, mandatory if dataset doenst contain it]  ignored if specified in json\n";
+               "--length <number>[optional, mandatory if dataset doenst contain it]  ignored if specified in json\n"
+               "--format <graph|lp|all> [optional, graph by default]\n"
+               "--cuts <number,...,number>[optional, generate cut graph for single instance, ignored for multiple instances]\n"
+               "--apply_cuts <0|1> [Optional (default: false). Generates the cut graph using the cuts defined in each instance. If none are defined, no cuts are applied.]";
+               //TODO: add cuts array support
+               //TODO: add lp output
     if (argc < 2) {
         cerr
             << "Usage: " << argv[0]
@@ -740,8 +743,7 @@ int main(int argc, char** argv) {
                 if(val["QUANTITY"].get<unsigned int>() == 0) removeList.push_back(key);
             }
 
-            for (auto key:removeList)
-            {
+            for (auto key:removeList){
                 dataset.erase(key);
             }
             
@@ -859,6 +861,11 @@ int main(int argc, char** argv) {
                     graph
                 );
             }
+        }
+        
+        unsigned int cuts[] = { width };
+        for (unsigned int cut:cuts){
+
         }
 
         // Optionally compute clique covering

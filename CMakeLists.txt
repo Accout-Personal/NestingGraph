@@ -73,6 +73,10 @@ add_executable(nfpTest
   src/NFPTest.cpp
 )
 
+add_executable(graphCount
+  src/graphCount.cpp
+)
+
 set_target_properties(nfpGen PROPERTIES
   ENABLE_EXPORTS OFF
 )
@@ -88,6 +92,11 @@ target_include_directories(nfpGen PRIVATE
 )
 
 target_include_directories(nesting_graph PRIVATE
+  src
+  ${CMAKE_SOURCE_DIR}/third_party/json/include
+)
+
+target_include_directories(graphCount PRIVATE
   src
   ${CMAKE_SOURCE_DIR}/third_party/json/include
 )
@@ -108,5 +117,10 @@ target_link_libraries(nfpGen PRIVATE
 target_link_libraries(nesting_graph PRIVATE
   utils
   nfp_cgal
+  nlohmann_json::nlohmann_json
+)
+
+target_link_libraries(graphCount PRIVATE
+  utils
   nlohmann_json::nlohmann_json
 )
