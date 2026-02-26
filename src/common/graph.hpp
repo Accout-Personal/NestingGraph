@@ -19,6 +19,9 @@ public:
         adjacencyMatrix.resize(n, std::vector<bool>(n, false));
     }
 
+    //COPY GRAPH
+    Graph(uint32_t n, uint64_t numberEdges,std::vector<std::vector<bool>> adjacencyMatrix) : numVertices(n), numberEdges(numberEdges), adjacencyMatrix(adjacencyMatrix) {}
+
     // Add an edge to the graph
     void addEdge(uint32_t u, uint32_t v) {
         if (u != v) { // No self-loops
