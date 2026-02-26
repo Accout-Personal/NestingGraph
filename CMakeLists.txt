@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.20)
 if(WIN32)
     # Windows-specific static settings
     # This bakes the C++ runtime (msvcrt) into the exe
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Release>:Release>")
     add_definitions(-DCGAL_USE_STATIC_LIBS=1)
     set(VCPKG_TARGET_TRIPLET "x64-windows-static" CACHE STRING "")
     set(VCPKG_HOST_TRIPLET "x64-windows-static" CACHE STRING "")
