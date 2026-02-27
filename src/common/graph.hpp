@@ -24,6 +24,8 @@ public:
     //COPY GRAPH
     Graph(uint32_t n, uint64_t numberEdges,std::vector<std::vector<bool>> adjacencyMatrix) : numVertices(n), numberEdges(numberEdges), adjacencyMatrix(adjacencyMatrix) {}
 
+    Graph(){}
+
     // Add an edge to the graph
     void addEdge(uint32_t u, uint32_t v) {
         if (u != v) { // No self-loops
@@ -98,17 +100,39 @@ public:
         return edges;
     }
 
-    void writeEdgesToFile(const std::string& filename) const {
-        std::ofstream outFile(filename);
+    void loadGraph(Graph g){
+        numVertices = g.getNumVertices();
+        numberEdges = g.getNumEdges();
+        adjacencyMatrix = g.getMatrix();
+        NodeRemoved = g.getRemovedList();
+    }
+
+    //Get Matrix
+    std::vector<std::vector<bool>> getMatrix(){
+        return adjacencyMatrix;
+    }
+
+    std::vector<bool> getRemovedList(){
+        return NodeRemoved;
+    }
+
+    
+
+    void writeEdgesToFile(const std::string& filename,std::vector<uint32_t> &Map) const {
+        std::ofstream outFile(filename,std::ios::app);
         if (!outFile) {
             throw std::runtime_error("Could not open file for writing: " + filename);
         }
 
         for (uint32_t i = 0; i < numVertices; ++i) {
+            if(NodeRemoved[i]) continue;
             for (uint32_t j = i + 1; j < numVertices; ++j) {
+                if(NodeRemoved[j]) continue;
+
                 if (adjacencyMatrix[i][j]) {
-                    outFile << i << "\t" << j << "\n";
+                    outFile << Map[i] << "\t" << Map[j] << "\n";
                 }
+    
             }
         }
 
@@ -228,30 +252,70 @@ public:
         return true;
     }
 
-    void writeIntoFile(const std::string& filename)
-    {
-        //remove the output file if already exists
-        try {
-            if (std::filesystem::remove(filename)) {
-                std::cout << "Old clique data has been successfully removed \n" << std::endl;
-            }
-        }
-        catch (const std::filesystem::filesystem_error& e) {
-            std::cerr << "Error: " << e.what() << std::endl;
-        }
+    uint32_t writeIntoFile(const std::string& filename,std::vector<uint32_t> &Map){
+        
         std::ofstream outfileClique(filename, std::ios::app);
-        for (Clique clique : cliques)
-        {
-            std::set<int> vertexes = clique.getVertices();
-            for (int vertex : vertexes)
-            {
-                outfileClique << vertex << " ";
+        //Some nodes are being cut
+        uint32_t count = 0;
+        if (!Map.empty()){ 
+            for (Clique clique : cliques){
+                std::set<int> vertexes = clique.getVertices();
+                std::vector<int>mappedVertexes;
+                for (int vertex : vertexes){
+                    if (Map[vertex]!=-1){
+                        mappedVertexes.push_back(Map[vertex]);
+                    }
+                }
+                if (!mappedVertexes.empty()){
+                    for (const auto &v:mappedVertexes){
+                            outfileClique << v << " ";
+                    }
+                    count++;
+                    outfileClique << '\n';
+                }
+                
             }
-            outfileClique << '\n';
+            
+        }
+        else{//no cut
+            for (Clique clique : cliques){
+                std::set<int> vertexes = clique.getVertices();
+                for (int vertex : vertexes)
+                {
+                    outfileClique << vertex << " ";
+                }
+                outfileClique << '\n';
+            }
+            count = cliques.size();
+        }
+        outfileClique.close();
+
+        std::cout << "save to file complete \n";
+        return count;
+    }
+
+    uint32_t countRowMap(std::vector<uint32_t> &Map){
+        
+        //Some nodes are being cut
+        uint32_t count = 0;
+        if (!Map.empty()){ 
+            for (Clique clique : cliques){
+                std::set<int> vertexes = clique.getVertices();
+                std::vector<int>mappedVertexes;
+                for (int vertex : vertexes){
+                    if (Map[vertex]!=-1){
+                        mappedVertexes.push_back(Map[vertex]);
+                    }
+                }
+                if (!mappedVertexes.empty()) count++;
+            }
+        }
+        else{//no cut
+            count = cliques.size();
         }
 
-        outfileClique.close();
         std::cout << "save to file complete \n";
+        return count;
     }
 
 };
