@@ -1,7 +1,7 @@
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
-
+#include <charconv>
 #include <string>
 #include <vector>
 #include <nlohmann/json.hpp>
@@ -19,7 +19,17 @@ using namespace std;
 
 namespace fs = std::filesystem;
 
+bool REMOVE_OLD_FOLDER = true;
 bool CLIQUE_COVERING_ADD_LAYER_CLIQUE = false;
+bool OUTPUT_ADD_LAYER_CLIQUE = true;
+bool OUT_OLD_METADATA = false;
+std::string to_string_fixed(double x, int decimals) {
+    std::array<char, 128> buf{};
+    auto [ptr, ec] = std::to_chars(buf.data(), buf.data() + buf.size(),
+                                   x, std::chars_format::fixed, decimals);
+    if (ec != std::errc{}) throw std::runtime_error("to_chars failed");
+    return std::string(buf.data(), ptr);
+}
 
 // argv0 = argv[0] dal main
 fs::path executable_path_from_argv0(const char* argv0) {
@@ -47,16 +57,12 @@ bool is_existing_directory(const std::string& s) {
  // polygons can be any JSON value (array/object)
 void writeNfpInfpJson(const std::string& outputdir,
                       const nlohmann::json& polygons){
-    // if not os.path.exists(outputdir): os.mkdir(outputdir)
-    if (!fs::exists(outputdir)) {
-        fs::create_directories(outputdir); // like mkdir, but also creates parents if needed
-    }
 
     // nfp_infp = json.dumps(polygons, indent=2)
     const std::string nfp_infp = polygons.dump(2);
 
     // with open(outputdir+'/nfp-infp.json', 'w') as file: file.write(...)
-    const fs::path outPath = fs::path(outputdir) / "nfp-infp.json";
+    const fs::path outPath = fs::path(outputdir);
     std::ofstream out(outPath, std::ios::out | std::ios::trunc);
     if (!out) {
         throw std::runtime_error("Failed to open file for writing: " + outPath.string());
@@ -730,8 +736,6 @@ int main(int argc, char** argv) {
                "--format <graph|lp|all> [optional, graph by default]\n"
                "--cuts <number,...,number>[optional, generate cut graph for single instance, ignored for multiple instances]\n"
                "--apply_cuts <0|1> [Optional (default: false). Generates the cut graph using the cuts defined in each instance. If none are defined, no cuts are applied.]";
-               //TODO: add cuts array support
-               //TODO: add lp output
     if (argc < 2) {
         cerr
             << "Usage: " << argv[0]
@@ -791,7 +795,7 @@ int main(int argc, char** argv) {
             cuts_set = true;
             enable_cut = true;
         } else if (key == "--apply_cuts") {
-            enable_cut = cliqueCovering = parse_bool(argv[argi + 1]);
+            enable_cut = parse_bool(argv[argi + 1]);
             enable_cut_set = true;
         } else {
             std::cerr << "Unknown argument: " << key << "\n";
@@ -829,7 +833,10 @@ int main(int argc, char** argv) {
     }
 
     
-
+    if(REMOVE_OLD_FOLDER){
+        cout << "removing existing output directory\n";
+        std::filesystem::remove_all(outputdir);
+    }
     unordered_map<string, string> datasetPathMap; //checking duplicates dataset names and fast insert dataset paths
     for (const auto& datasetPath : datasetPaths){
         if (!is_existing_directory(datasetPath)){
@@ -934,9 +941,17 @@ int main(int argc, char** argv) {
         double length = set["length"].get<double>();
         
         string outputDataset = outputdir + outputname;
+        
+
         if (enable_cut_set && set.contains("cuts") && set["cut"].size()>0){
-            outputDataset = outputdir + outputname + "\\cut_"+to_string(length)+"\\";
+            if(!set.contains("cuts") || set["cut"].size()==0) {
+                cout << "WARNING: dataset: "<< outputname << " doesnt have cut field, skipped.\n";
+                continue;
+            }
+
+            outputDataset = outputdir + outputname + "\\cut_"+to_string_fixed(length,1)+"\\";
         }
+        
         
         unsigned int step = 1;
         unsigned int gx = step;
@@ -1116,6 +1131,7 @@ int main(int argc, char** argv) {
         if (cliqueCovering){
             
             if(!type_oriented && CLIQUE_COVERING_ADD_LAYER_CLIQUE){
+                //graphCopy useful if needed to compute NFP edges
                 graphCopy.loadGraph(graph); //make a copybackup before adding new edges;
                 //Add clique edges for each layer if not type oriented. And flag is set true
                 for (const auto& [layer, poly] : layers.layerPoly) {
@@ -1167,18 +1183,48 @@ int main(int argc, char** argv) {
   
         //TODO: write metadata on top of graph
         // Output graph to file
+        cout << "saving result..\n";
+        if(enable_cut_set) outputDataset = outputdir + outputname + "\\cut_" + to_string_fixed(length,1);
+        fs::create_directories(outputDataset);
+
         if(cliqueCovering){
             //const string cliqueOutputdir = outputDataset + "/BLAZEWICZ1_ECC_z.txt";
-            const string cliqueOutputdir = outputDataset + "/"+outputname+"_ECC_"+to_string(length)+".txt";
-            max1MinEKCover.writeIntoFile(cliqueOutputdir,{});
+            const string cliqueOutputdir = outputDataset + "/"+outputname+"_ECC_"+to_string_fixed(length,1)+".txt";
+            auto cliqueCount = max1MinEKCover.countRowMap();
+            //# number of cliques in the edge-clique cover (# of lines below): |C| = …
+            std::ofstream out(cliqueOutputdir, std::ios::out | std::ios::trunc);
+            out << fixed << setprecision(1) <<"# strip length z = " << length << endl;
+            out <<"# G_z number of vertices: |V| = " << NumberVertices << endl;
+            out <<"# G_z number of edges: |E| = " << NFPEdges+cliqueEdges << endl;
+            out <<"# G_z number of pieces: |P| = " << total_polygon << endl;
+            //out <<"# number of cliques in the edge-clique cover (# of lines below): |C| =" << cliqueCount+ layerCliques.size() << endl;
+            //Piece oriented + clique covering add layer clique.
+            if(!type_oriented && OUTPUT_ADD_LAYER_CLIQUE){
+                cout << "adding layer cliques..\n";                   
+                out <<"# number of cliques in the edge-clique cover (# of lines below): |C| = " << cliqueCount + total_polygon << endl;
+
+                for (const auto& [layer, poly] : layers.layerPoly) {
+                    const uint64_t start = layers.layerOfPoint[layer].indexRange.first;
+                    const uint64_t end = layers.layerOfPoint[layer].indexRange.second;
+                    for (uint64_t i = start; i <= end;i++) {
+                        out << i << " ";
+                    }
+                    if (end != layers.layerOfPoint.back().indexRange.second){
+                        out << "\n";
+                    }
+                }   
+            }else{
+                out <<"# number of cliques in the edge-clique cover (# of lines below): |C| = " << cliqueCount<< endl;
+            }
+            max1MinEKCover.writeIntoFile(cliqueOutputdir);
         }
         else{
-            const string graphOutputPath = outputDataset + "/"+outputname+"_graph_"+to_string(length)+".csv";
-            graph.writeEdgesToFile(graphOutputPath,{});
+            const string graphOutputPath = outputDataset + "/"+outputname+"_graph_"+to_string_fixed(length,1)+".csv";
+            graph.writeEdgesToFile(graphOutputPath);
         }
         
         // Write pointsCoordinate
-        const string pointsOutputPath = outputDataset + "/"+outputname+"_graph2Strip_"+to_string(length)+".txt";
+        const string pointsOutputPath = outputDataset + "/"+outputname+"_graph2Strip_"+to_string_fixed(length,1)+".txt";
         ofstream pointsOut(pointsOutputPath, ios::out | ios::trunc);
         if (!pointsOut) {
             throw runtime_error("Failed to open file for writing: " + pointsOutputPath);
@@ -1193,77 +1239,86 @@ int main(int argc, char** argv) {
         
         //"BLAZEWICZ1_polygons_z";
         std::cout << "Writting NFP into JSON\n";
-        const string json_output = outputDataset + "/"+outputname+"_polygons_"+to_string(length)+".json"; 
-        writeNfpInfpJson(outputDataset, polygonsWrite);
-        //TODO:search and substitue polygon string after write.
+        const string json_output = outputDataset + "/"+outputname+"_polygons_"+to_string_fixed(length,1)+".json"; 
+        writeNfpInfpJson(json_output, polygonsWrite);
+        //search and substitue polygon string after write.
         vector<string> from;
         vector<string> to;
         for (const auto& lp : layers.layerOfPoint) {
-           from.push_back(lp.polygon);
-           to.push_back(to_string(lp.layer));
+           from.push_back("\""+lp.polygon+"\"");
+           to.push_back("\""+to_string(lp.layer)+"\"");
         }
         SearchReplaceInFile(json_output, from, to);
 
        
         ////Write metadata
-        //const string metadataOutputPath = outputDataset + "/metadata.csv";
-        //ofstream metadataOut(metadataOutputPath, ios::out | ios::trunc);
-        //if (!metadataOut) {
-        //    throw runtime_error("Failed to open file for writing: " + metadataOutputPath);
-        //}
-        //
-        //metadataOut <<"Name :\t" <<outputname << "\n";
-        //metadataOut <<"Total Pieces :\t" << total_polygon << "\n";
-        //metadataOut <<"Type of Pieces :\t" << num_polygon << "\n";
-        //metadataOut <<"Board Width :\t" << width << "\n";
-        //metadataOut <<"Board Length :\t" << length << "\n";
-        //metadataOut <<"Number of Nodes :\t" << graph.getNumVertices() << "\n";
-        //metadataOut <<"Number of Edges :\t" << graph.getNumEdges() << "\n";
-        //if(!type_oriented){  
-        //    metadataOut <<"Number of Clique Edges :\t" << cliqueEdges << "\n";
-        //}
-        //else{
-        //    metadataOut <<"Number of Clique Edges :\t" << -1 << "\n";
-        //}
-//
-        //if(cliqueCovering){
-        //    metadataOut <<"Clique Cover :\t" << max1MinEKCover.size() << "\n";
-        //}
-        //
-        //metadataOut <<"Total Polygon Area :\t" << total_area << "\n";
-        //metadataOut.close();
+        if(OUT_OLD_METADATA){
+            const string metadataOutputPath = outputDataset + "/metadata.csv";
+            ofstream metadataOut(metadataOutputPath, ios::out | ios::trunc);
+            if (!metadataOut) {
+                throw runtime_error("Failed to open file for writing: " + metadataOutputPath);
+            }
+
+            metadataOut <<"Name :\t" <<outputname << "\n";
+            metadataOut <<"Total Pieces :\t" << total_polygon << "\n";
+            metadataOut <<"Type of Pieces :\t" << num_polygon << "\n";
+            metadataOut <<"Board Width :\t" << width << "\n";
+            metadataOut <<"Board Length :\t" << int(length) << "\n";
+            metadataOut <<"Number of Nodes :\t" << graph.getNumVertices() << "\n";
+            metadataOut <<"Number of Edges :\t" << graph.getNumEdges() << "\n";
+            if(!type_oriented){  
+                metadataOut <<"Number of Clique Edges :\t" << cliqueEdges << "\n";
+            }
+            else{
+                metadataOut <<"Number of Clique Edges :\t" << -1 << "\n";
+            }
+
+            if(cliqueCovering){
+                metadataOut <<"Clique Cover :\t" << max1MinEKCover.size() << "\n";
+            }
+
+            metadataOut <<"Total Polygon Area :\t" << total_area << "\n";
+            metadataOut.close();
+
+        }
+        
 
 
         //TODO: cut and write for the rest.
-        //if is clique covering, cut the already computed cliques and graph for metadata. DONT RECOMPUTE CLIQUE.
+        //if is clique covering, cut the already computed cliques and graph for metadata. DO NOT RECOMPUTE CLIQUE.
         
-        map<uint32_t,vector<uint32_t>> cutMaps;
+        vector<uint32_t> cutMap;
         for (auto cut:set["cuts"]){
 
             outputDataset = outputdir + outputname + "\\cut_"+to_string(cut)+"\\";
             fs::create_directories(outputDataset);
             vector<uint32_t> removeList = GetRemoveNodeList(layers.layerOfPoint,cut,length);
             uint32_t TotalVertices = computeTotalVertices(layers.layerOfPoint);
-            cutMaps[cut] = MakeMap(removeList,TotalVertices);
+            cutMap = MakeMap(removeList,TotalVertices);
             //prepare layer clique for the cut graph, which is the same as the original graph but with some vertices removed using the map. 
             //In case of one layer completely removed, also decrease the number of pieces by 1. This is for the metadata of the cut graph, which is different from the original graph. 
             //The cut graph will have less vertices and edges, and possibly less pieces if some layers are completely removed. 
             vector<vector<uint32_t>> layerCliques;
             vector<PointCoord> newIndex;
+            uint64_t cliqueEdges = 0;
             for (auto layer:layers.layerOfPoint){
                 
                 vector<uint32_t> layerclique;
+                
                 for (const auto& p : layer.innerFitPoints) {
-                    if(cutMaps[cut][p.id] != -1){
-                        newIndex.push_back(PointCoord{layer.layer,p.x,p.y,cutMaps[cut][p.id]});
-                        layerclique.push_back(cutMaps[cut][p.id]);
+                    if(cutMap[p.id] != -1){
+                        newIndex.push_back(PointCoord{layer.layer,p.x,p.y,cutMap[p.id]});
+                        layerclique.push_back(cutMap[p.id]);
                     }
                 }
                 if(!newIndex.empty()){
                     layerCliques.push_back(layerclique);
+                    auto n = layerclique.size();
+                    cliqueEdges += n*(n-1)/2;
                 }
                 
             }
+            
             //copy json
             CopyFile(json_output, outputDataset + outputname+"_polygons_"+to_string(cut)+".json", true);
 
@@ -1279,35 +1334,38 @@ int main(int argc, char** argv) {
             }
 
             graph.removeNodes(removeList);
+            //TODO: fix for the case of CLIQUE_COVERING_ADD_LAYER_CLIQUE inside cliquecovering case.
             uint32_t NumberEdges = graph.getNumEdges();
             uint32_t NumberVertices = graph.getNumVertices();
             if (cliqueCovering){
-                const string cliqueOutputdir = outputDataset + "/"+outputname+"_ECC_"+to_string(cut)+".txt";
-                
-                //Piece oriented + clique covering add layer clique.
-                if(!type_oriented && CLIQUE_COVERING_ADD_LAYER_CLIQUE){                   
-
-                    auto cliqueCount = max1MinEKCover.countRowMap(cutMaps[cut]);
+                    const string cliqueOutputdir = outputDataset + "/"+outputname+"_ECC_"+to_string(cut)+".txt";
+                    auto cliqueCount = max1MinEKCover.countRowMap(cutMap);
                     //TODO: add latest version of metadata format
                     //# number of cliques in the edge-clique cover (# of lines below): |C| = …
                     std::ofstream out(cliqueOutputdir, std::ios::out | std::ios::trunc);
                     out <<"# strip length z = " << cut << endl;
                     out <<"# G_z number of vertices: |V| = " << NumberVertices << endl;
-                    out <<"# G_z number of edges: |E| = " << NumberEdges << endl;
+                    out <<"# G_z number of edges: |E| = " << NumberEdges+cliqueEdges << endl;
                     out <<"# G_z number of pieces: |P| = " << layerCliques.size() << endl;
-                    out <<"# number of cliques in the edge-clique cover (# of lines below): |C| =" << cliqueCount+ layerCliques.size() << endl;
+                    //out <<"# number of cliques in the edge-clique cover (# of lines below): |C| = " << cliqueCount+ layerCliques.size() << endl;
 
-
+                //Piece oriented + clique covering add layer clique.
+                if(!type_oriented && OUTPUT_ADD_LAYER_CLIQUE){                   
+                    out <<"# number of cliques in the edge-clique cover (# of lines below): |C| = " << cliqueCount+ layerCliques.size() << endl;
                     //add layer clique (with cut filter in the edgecover )
-                    for (const auto& layerClique : layerCliques) {
+                    for (size_t i = 0; i < layerCliques.size(); ++i){
+                        const auto& layerClique = layerCliques[i];
                         for (const auto& v : layerClique) {
                             out << v << " ";
                         }
-                        out << "\n";
-                    }
+                        if (i + 1 != layerCliques.size()) out << "\n";
+                    }  
+                    
+                }else{
+                    out <<"# number of cliques in the edge-clique cover (# of lines below): |C| = " << cliqueCount<< endl;
                 }
                 
-                max1MinEKCover.writeIntoFile(cliqueOutputdir,cutMaps[cut]);
+                max1MinEKCover.writeIntoFile(cliqueOutputdir,cutMap);
                 
             }else{
 
@@ -1317,7 +1375,37 @@ int main(int argc, char** argv) {
                     out <<"# G_z number of vertices: |V| = " << NumberVertices << endl;
                     out <<"# G_z number of edges: |E| = " << NumberEdges << endl;
                     out <<"# G_z number of pieces: |P| = " << layerCliques.size() << endl;
-                graph.writeEdgesToFile(graphOutputPath,cutMaps[cut]);
+                graph.writeEdgesToFile(graphOutputPath,cutMap);
+            }
+
+            if(OUT_OLD_METADATA){
+                const string metadataOutputPath = outputDataset + "/metadata.csv";
+                ofstream metadataOut(metadataOutputPath, ios::out | ios::trunc);
+                if (!metadataOut) {
+                    throw runtime_error("Failed to open file for writing: " + metadataOutputPath);
+                }
+
+                metadataOut <<"Name :\t" <<outputname << "\n";
+                metadataOut <<"Total Pieces :\t" << total_polygon << "\n";
+                metadataOut <<"Type of Pieces :\t" << num_polygon << "\n";
+                metadataOut <<"Board Width :\t" << width << "\n";
+                metadataOut <<"Board Length :\t" << length << "\n";
+                metadataOut <<"Number of Nodes :\t" << graph.getNumVertices() << "\n";
+                metadataOut <<"Number of Edges :\t" << graph.getNumEdges() << "\n";
+                if(!type_oriented){  
+                    metadataOut <<"Number of Clique Edges :\t" << cliqueEdges << "\n";
+                }
+                else{
+                    metadataOut <<"Number of Clique Edges :\t" << -1 << "\n";
+                }
+
+                if(cliqueCovering){
+                    metadataOut <<"Clique Cover :\t" << max1MinEKCover.size() << "\n";
+                }
+
+                metadataOut <<"Total Polygon Area :\t" << total_area << "\n";
+                metadataOut.close();
+
             }
         }
 

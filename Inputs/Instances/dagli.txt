@@ -3,5 +3,6 @@
     "outputName":"dagli1",
     "quantity":1,
     "width":60,
-    "length":25           
+    "length":25,
+    "cuts":[22,23]           
 }

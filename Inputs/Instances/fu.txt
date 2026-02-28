@@ -4,48 +4,55 @@
             "outputName":"fu5",
             "quantity":1,
             "width":38,
-            "length":18           
+            "length":18,
+            "cuts":[17,18]           
         },
         {
             "dataset":"fu6.json",
             "outputName":"fu6",
             "quantity":1,
             "width":38,
-            "length":24           
+            "length":24,
+            "cuts":[22,23]           
         },
         {
             "dataset":"fu7.json",
             "outputName":"fu7",
             "quantity":1,
             "width":38,
-            "length":24           
+            "length":24,
+            "cuts":[23,24]           
         },
         {
             "dataset":"fu8.json",
             "outputName":"fu8",
             "quantity":1,
             "width":38,
-            "length":24           
+            "length":24,
+            "cuts":[23,24]           
         },
         {
             "dataset":"fu9.json",
             "outputName":"fu9",
             "quantity":1,
             "width":38,
-            "length":29           
+            "length":29,
+            "cuts":[24,25]           
         },
         {
             "dataset":"fu10.json",
             "outputName":"fu10",
             "quantity":1,
             "width":38,
-            "length":34           
+            "length":34,
+            "cuts":[28,29]           
         },
         {
             "dataset":"fu.json",
             "outputName":"fu",
             "quantity":1,
             "width":38,
-            "length":38           
+            "length":38,
+            "cuts":[33,34]           
         }
     ]

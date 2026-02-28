@@ -12,41 +12,47 @@
                 "PIECE 7":0
             },
             "width":15,
-            "length":27
+            "length":27,
+            "cuts":[25,26]
         },
         {
             "dataset":"blaz",
             "outputName":"BLAZEWICZ1",
             "quantity":1,
             "width":15,
-            "length":8            
+            "length":8,
+            "cuts":[7,8]            
         },
         {
             "dataset":"blaz",
             "outputName":"BLAZEWICZ2",
             "quantity":2,
             "width":15,
-            "length":16            
+            "length":16,
+            "cuts":[13,14]            
         },
         {
             "dataset":"blaz",
             "outputName":"BLAZEWICZ3",
             "quantity":3,
             "width":15,
-            "length":22            
+            "length":22,
+            "cuts":[19,20]            
         },
         {
             "dataset":"blaz",
             "outputName":"BLAZEWICZ4",
             "quantity":4,
             "width":15,
-            "length":29           
+            "length":29,
+            "cuts":[26,27]           
         },
         {
             "dataset":"blaz",
             "outputName":"BLAZEWICZ5",
             "quantity":5,
             "width":15,
-            "length":36           
+            "length":36,
+            "cuts":[33,34]           
         }
     ]

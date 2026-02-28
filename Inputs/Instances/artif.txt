@@ -13,7 +13,8 @@
                 "piece 8":2
             },
             "width":27,
-            "length":8           
+            "length":8,
+            "cuts":[6,7]           
         },
         {
             "dataset":"artif",
@@ -29,7 +30,8 @@
                 "piece 8":4
             },
             "width":27,
-            "length":14           
+            "length":14,
+            "cuts":[12,13]           
         },
         {
             "dataset":"artif",
@@ -45,7 +47,8 @@
                 "piece 8":6
             },
             "width":27,
-            "length":20           
+            "length":20,
+            "cuts":[18,19]           
         },
         {
             "dataset":"artif",
@@ -61,7 +64,8 @@
                 "piece 8":8
             },
             "width":27,
-            "length":28           
+            "length":28,
+            "cuts":[24,25]           
         },
         {
             "dataset":"artif",
@@ -77,7 +81,8 @@
                 "piece 8":10
             },
             "width":27,
-            "length":34
+            "length":34,
+            "cuts":[31,32]
         },
         {
             "dataset":"artif",
@@ -93,7 +98,8 @@
                 "piece 8":12
             },
             "width":27,
-            "length":41
+            "length":41,
+            "cuts":[38,39]
         },
         {
             "dataset":"artif",
@@ -109,7 +115,8 @@
                 "piece 8":14
             },
             "width":27,
-            "length":48
+            "length":48,
+            "cuts":[44,45]
         },
         {
             "dataset":"artif",
@@ -125,6 +132,7 @@
                 "piece 8":15
             },
             "width":27,
-            "length":53
+            "length":53,
+            "cuts":[50,51]
         }
     ]

@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.20)
 if(WIN32)
     # Windows-specific static settings
     # This bakes the C++ runtime (msvcrt) into the exe
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Release>:Release>")
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     add_definitions(-DCGAL_USE_STATIC_LIBS=1)
     set(VCPKG_TARGET_TRIPLET "x64-windows-static" CACHE STRING "")
     set(VCPKG_HOST_TRIPLET "x64-windows-static" CACHE STRING "")
@@ -73,10 +73,6 @@ add_executable(nfpTest
   src/NFPTest.cpp
 )
 
-add_executable(graphCount
-  src/graphCount.cpp
-)
-
 set_target_properties(nfpGen PROPERTIES
   ENABLE_EXPORTS OFF
 )
@@ -96,10 +92,6 @@ target_include_directories(nesting_graph PRIVATE
   ${CMAKE_SOURCE_DIR}/third_party/json/include
 )
 
-target_include_directories(graphCount PRIVATE
-  src
-  ${CMAKE_SOURCE_DIR}/third_party/json/include
-)
 
 
 target_link_libraries(nfpTest PRIVATE
@@ -117,10 +109,5 @@ target_link_libraries(nfpGen PRIVATE
 target_link_libraries(nesting_graph PRIVATE
   utils
   nfp_cgal
-  nlohmann_json::nlohmann_json
-)
-
-target_link_libraries(graphCount PRIVATE
-  utils
   nlohmann_json::nlohmann_json
 )

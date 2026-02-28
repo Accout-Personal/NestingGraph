@@ -4,14 +4,16 @@
             "outputName":"three",
             "quantity":1,
             "width":7,
-            "length":7            
+            "length":7,
+            "cuts":[5,6]            
         },
         {
             "dataset":"three",
             "outputName":"threep2",
             "quantity":2,
             "width":7,
-            "length":11
+            "length":11,
+            "cuts":[9,10]
             
         },
         {
@@ -19,7 +21,8 @@
             "outputName":"threep2w9",
             "quantity":2,
             "width":9,
-            "length":9
+            "length":9,
+            "cuts":[7,8]
             
         },
         {
@@ -27,13 +30,15 @@
             "outputName":"threep3",
             "quantity":3,
             "width":7,
-            "length":16
+            "length":16,
+            "cuts":[13,14]
         },
         {
             "dataset":"three",
             "outputName":"threep3w9",
             "quantity":3,
             "width":9,
-            "length":13
+            "length":13,
+            "cuts":[11,12]
         }
     ]

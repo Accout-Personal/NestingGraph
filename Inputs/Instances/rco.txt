@@ -4,34 +4,39 @@
         "outputName":"RCO1",
         "quantity":1,
         "width":15,
-        "length":8           
+        "length":8,
+        "cuts":[7,8]           
     },
     {
         "dataset":"RCO",
         "outputName":"RCO2",
         "quantity":2,
         "width":15,
-        "length":17           
+        "length":17,
+        "cuts":[14,15]           
     },
     {
         "dataset":"RCO",
         "outputName":"RCO3",
         "quantity":3,
         "width":15,
-        "length":25           
+        "length":25,
+        "cuts":[21,22]           
     },
     {
         "dataset":"RCO",
         "outputName":"RCO4",
         "quantity":4,
         "width":15,
-        "length":29           
+        "length":29,
+        "cuts":[28,29]           
     },
     {
         "dataset":"RCO",
         "outputName":"RCO5",
         "quantity":5,
         "width":15,
-        "length":41           
+        "length":41,
+        "cuts":[36,35]           
     }
 ]

@@ -4,6 +4,7 @@
         "dataset": "jakobs1.json",
         "width": 10,
         "length": 20,
+        "cuts":[17,18],
         "quantity": {
             "1": 1,
             "2": 0,
@@ -37,6 +38,7 @@
         "dataset": "jakobs1.json",
         "width": 10,
         "length": 19,
+        "cuts":[16,17],
         "quantity": {
             "1": 1,
             "2": 0,
@@ -70,6 +72,7 @@
         "dataset": "jakobs1.json",
         "width": 10,
         "length": 21,
+        "cuts":[19,20],
         "quantity": {
             "1": 0,
             "2": 1,
@@ -103,6 +106,7 @@
         "dataset": "jakobs1.json",
         "width": 10,
         "length": 23,
+        "cuts":[20,21],
         "quantity": {
             "1": 0,
             "2": 0,
@@ -136,6 +140,7 @@
         "dataset": "jakobs1.json",
         "width": 10,
         "length": 15,
+        "cuts":[12,13],
         "quantity": {
             "1": 1,
             "2": 1,
@@ -169,6 +174,7 @@
         "dataset": "jakobs1.json",
         "width": 20,
         "length": 12,
+        "cuts":[11,12],
         "quantity": {
             "1": 1,
             "2": 0,
@@ -202,6 +208,7 @@
         "dataset": "jakobs1.json",
         "width": 20,
         "length": 11,
+        "cuts":[9,10],
         "quantity": {
             "1": 1,
             "2": 0,
@@ -235,6 +242,7 @@
         "dataset": "jakobs1.json",
         "width": 20,
         "length": 14,
+        "cuts":[11,12],
         "quantity": {
             "1": 0,
             "2": 1,
@@ -268,6 +276,7 @@
         "dataset": "jakobs1.json",
         "width": 20,
         "length": 10,
+        "cuts":[7,8],
         "quantity": {
             "1": 1,
             "2": 1,
@@ -301,6 +310,7 @@
         "dataset": "jakobs1.json",
         "width": 20,
         "length": 16,
+        "cuts":[12,13],
         "quantity": {
             "1": 1,
             "2": 0,
@@ -334,6 +344,7 @@
         "dataset": "jakobs1.json",
         "width": 20,
         "length": 14,
+        "cuts":[11,12],
         "quantity": {
             "1": 1,
             "2": 0,
@@ -367,6 +378,7 @@
         "dataset": "jakobs1.json",
         "width": 20,
         "length": 14,
+        "cuts":[11,12],
         "quantity": {
             "1": 1,
             "2": 1,
@@ -400,6 +412,7 @@
         "dataset": "jakobs1.json",
         "width": 20,
         "length": 16,
+        "cuts":[13,14],
         "quantity": {
             "1": 0,
             "2": 0,
@@ -433,6 +446,7 @@
         "dataset": "jakobs1.json",
         "width": 20,
         "length": 12,
+        "cuts":[9,10],
         "quantity": {
             "1": 1,
             "2": 1,
@@ -466,6 +480,7 @@
         "dataset": "jakobs1.json",
         "width": 20,
         "length": 16,
+        "cuts":[13,14],
         "quantity": {
             "1": 0,
             "2": 0,

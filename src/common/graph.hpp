@@ -118,7 +118,7 @@ public:
 
     
 
-    void writeEdgesToFile(const std::string& filename,std::vector<uint32_t> &Map) const {
+    void writeEdgesToFile(const std::string& filename,const std::vector<uint32_t> &Map = {}) const {
         std::ofstream outFile(filename,std::ios::app);
         if (!outFile) {
             throw std::runtime_error("Could not open file for writing: " + filename);
@@ -252,7 +252,7 @@ public:
         return true;
     }
 
-    uint32_t writeIntoFile(const std::string& filename,std::vector<uint32_t> &Map){
+    uint32_t writeIntoFile(const std::string& filename,const std::vector<uint32_t> &Map = {}){
         
         std::ofstream outfileClique(filename, std::ios::app);
         //Some nodes are being cut
@@ -294,7 +294,7 @@ public:
         return count;
     }
 
-    uint32_t countRowMap(std::vector<uint32_t> &Map){
+    uint32_t countRowMap(const std::vector<uint32_t> &Map={}){
         
         //Some nodes are being cut
         uint32_t count = 0;
@@ -314,7 +314,6 @@ public:
             count = cliques.size();
         }
 
-        std::cout << "save to file complete \n";
         return count;
     }
 

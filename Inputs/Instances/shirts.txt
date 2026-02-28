@@ -13,7 +13,8 @@
                 "PIECE 8":2
             },
             "width":40,
-            "length":13
+            "length":13,
+            "cuts":[12,13]
         },
         {
             "dataset":"shirts" ,
@@ -29,7 +30,8 @@
                 "PIECE 8":4
             },
             "width":40,
-            "length":20
+            "length":20,
+            "cuts":[16,17]
         },
         {
             "dataset":"shirts" ,
@@ -45,7 +47,8 @@
                 "PIECE 8":6
             },
             "width":40,
-            "length":26
+            "length":26,
+            "cuts":[23,24]
         },
         {
             "dataset":"shirts" ,
@@ -61,7 +64,8 @@
                 "PIECE 8":8
             },
             "width":40,
-            "length":35
+            "length":35,
+            "cuts":[32,33]
         },
         {
             "dataset":"shirts" ,
@@ -77,6 +81,7 @@
                 "PIECE 8":10
             },
             "width":40,
-            "length":42
+            "length":42,
+            "cuts":[40,41]
         }
     ]
