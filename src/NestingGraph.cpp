@@ -616,11 +616,11 @@ vector<uint32_t> GetRemoveNodeList(vector<LayerPoints> layerOfPoint, double cut,
     int globalOffset = int(boardLength)-int(cut);
     vector<uint32_t> removeNodes;
     for (auto layer:layerOfPoint){
-        unsigned endIndex = layer.Ymap[0].size()-globalOffset;
+        int endIndex = layer.Ymap[0].size()-globalOffset;
         endIndex = endIndex>=0 ? endIndex : 0;
         for (auto xarr:layer.Ymap){
             
-            for (unsigned int i = xarr.size()-1 ;i>=endIndex;i--){
+            for (int i = xarr.size()-1 ;i>=endIndex;i--){
                 removeNodes.push_back(xarr[i]);
             }
         }
