@@ -1327,7 +1327,7 @@ int main(int argc, char** argv) {
             vector<vector<uint32_t>> layerCliques;
             vector<PointCoord> newIndex;
             uint64_t cliqueEdges = 0;
-            unsigned int numberOfLayerClique = 0;
+
             for (auto layer:layers.layerOfPoint){
                 
                 vector<uint32_t> layerclique;
@@ -1338,8 +1338,7 @@ int main(int argc, char** argv) {
                         layerclique.push_back(cutMap[p.id]);
                     }
                 }
-                if(newIndex.size() > 1){
-                    numberOfLayerClique++;
+                if(layerclique.size() > 1){
                     layerCliques.push_back(layerclique);
                     auto n = layerclique.size();
                     cliqueEdges += n*(n-1)/2;
