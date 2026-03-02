@@ -266,7 +266,7 @@ public:
                         mappedVertexes.push_back(Map[vertex]);
                     }
                 }
-                if (!mappedVertexes.empty()){
+                if (mappedVertexes.size() > 1){
                     for (const auto &v:mappedVertexes){
                             outfileClique << v << " ";
                     }

@@ -20,9 +20,10 @@ using namespace std;
 namespace fs = std::filesystem;
 
 bool REMOVE_OLD_FOLDER = true;
-bool CLIQUE_COVERING_ADD_LAYER_CLIQUE = false;
+bool CLIQUE_COVERING_ADD_LAYER_CLIQUE = true;
 bool OUTPUT_ADD_LAYER_CLIQUE = true;
 bool OUT_OLD_METADATA = false;
+
 std::string to_string_fixed(double x, int decimals) {
     std::array<char, 128> buf{};
     auto [ptr, ec] = std::to_chars(buf.data(), buf.data() + buf.size(),
@@ -721,6 +722,17 @@ bool CopyFile(const std::string& source,
     return result;
 }
 
+void addLayerPolyClique(Graph &graph, LayersResult & layers){
+     for (const auto& [layer, poly] : layers.layerPoly) {
+        const uint64_t start = layers.layerOfPoint[layer].indexRange.first;
+        const uint64_t end = layers.layerOfPoint[layer].indexRange.second;
+        for (uint64_t i = start; i < end; ++i) {
+            for (uint64_t j = i + 1; j <= end; ++j) {
+                graph.addEdge(i, j);
+            }
+        }
+    }
+}
 
 
 
@@ -943,9 +955,9 @@ int main(int argc, char** argv) {
         string outputDataset = outputdir + outputname;
         
 
-        if (enable_cut_set && set.contains("cuts") && set["cut"].size()>0){
-            if(!set.contains("cuts") || set["cut"].size()==0) {
-                cout << "WARNING: dataset: "<< outputname << " doesnt have cut field, skipped.\n";
+        if (enable_cut_set && set.contains("cuts") && set["cuts"].size()>0){
+            if(!set.contains("cuts") || set["cuts"].size()==0) {
+                cout << "WARNING: dataset: "<< outputname << " doesnt have cuts field, skipped.\n";
                 continue;
             }
 
@@ -1129,27 +1141,35 @@ int main(int argc, char** argv) {
         EdgeCliqueCover max1MinEKCover;
         
         if (cliqueCovering){
-            
-            if(!type_oriented && CLIQUE_COVERING_ADD_LAYER_CLIQUE){
+            //add layer regardless the difference is earlier and later.
+            if(!type_oriented){
                 //graphCopy useful if needed to compute NFP edges
-                graphCopy.loadGraph(graph); //make a copybackup before adding new edges;
-                //Add clique edges for each layer if not type oriented. And flag is set true
-                for (const auto& [layer, poly] : layers.layerPoly) {
-                    const uint64_t start = layers.layerOfPoint[layer].indexRange.first;
-                    const uint64_t end = layers.layerOfPoint[layer].indexRange.second;
-                    for (uint64_t i = start; i < end; ++i) {
-                        for (uint64_t j = i + 1; j <= end; ++j) {
-                            graph.addEdge(i, j);
-                        }
-                    }
+                if (CLIQUE_COVERING_ADD_LAYER_CLIQUE){
+                    graphCopy.loadGraph(graph); //make a copybackup before adding new edges;
+                    //Add clique edges for each layer if not type oriented. And flag is set true
+                    addLayerPolyClique(graph, layers);
+                    cout << "Starting clique covering: Max1-EK\n";
+                    max1Cover = maximum1Heuristic(graph);
+                    //cout << "Start "
+                    max1MinEKCover = expandKouHeuristic(graph, max1Cover);
+                }else{
+                    cout << "Starting clique covering: Max1-EK\n";
+                    max1Cover = maximum1Heuristic(graph);
+                    //cout << "Start "
+                    max1MinEKCover = expandKouHeuristic(graph, max1Cover);
+                    addLayerPolyClique(graph, layers);
                 }
+                
+            }
+            else{
+                cout << "Starting clique covering: Max1-EK\n";
+                max1Cover = maximum1Heuristic(graph);
+                //cout << "Start "
+                max1MinEKCover = expandKouHeuristic(graph, max1Cover);
             }
 
             
-            cout << "Starting clique covering: Max1-EK\n";
-            max1Cover = maximum1Heuristic(graph);
-            //cout << "Start "
-            max1MinEKCover = expandKouHeuristic(graph, max1Cover);
+            
         }
 
         // Compute graph statistics
@@ -1200,22 +1220,24 @@ int main(int argc, char** argv) {
             //out <<"# number of cliques in the edge-clique cover (# of lines below): |C| =" << cliqueCount+ layerCliques.size() << endl;
             //Piece oriented + clique covering add layer clique.
             if(!type_oriented && OUTPUT_ADD_LAYER_CLIQUE){
-                cout << "adding layer cliques..\n";                   
+                cout << "adding layer cliques..\n";                 
+                cout << "clique count: " << cliqueCount << endl;
+                  
                 out <<"# number of cliques in the edge-clique cover (# of lines below): |C| = " << cliqueCount + total_polygon << endl;
 
                 for (const auto& [layer, poly] : layers.layerPoly) {
                     const uint64_t start = layers.layerOfPoint[layer].indexRange.first;
                     const uint64_t end = layers.layerOfPoint[layer].indexRange.second;
+                    //cout << "Printing layer clique\n";
                     for (uint64_t i = start; i <= end;i++) {
                         out << i << " ";
                     }
-                    if (end != layers.layerOfPoint.back().indexRange.second){
-                        out << "\n";
-                    }
+                    out << "\n";
                 }   
             }else{
                 out <<"# number of cliques in the edge-clique cover (# of lines below): |C| = " << cliqueCount<< endl;
             }
+            out.close();
             max1MinEKCover.writeIntoFile(cliqueOutputdir);
         }
         else{
@@ -1301,6 +1323,7 @@ int main(int argc, char** argv) {
             vector<vector<uint32_t>> layerCliques;
             vector<PointCoord> newIndex;
             uint64_t cliqueEdges = 0;
+            unsigned int numberOfLayerClique = 0;
             for (auto layer:layers.layerOfPoint){
                 
                 vector<uint32_t> layerclique;
@@ -1311,7 +1334,8 @@ int main(int argc, char** argv) {
                         layerclique.push_back(cutMap[p.id]);
                     }
                 }
-                if(!newIndex.empty()){
+                if(newIndex.size() > 1){
+                    numberOfLayerClique++;
                     layerCliques.push_back(layerclique);
                     auto n = layerclique.size();
                     cliqueEdges += n*(n-1)/2;
@@ -1332,11 +1356,14 @@ int main(int argc, char** argv) {
             for (const auto& lp : newIndex) {
                 pointsOut << lp.layer << "," << lp.x << "," << lp.y << "," << lp.id << "\n";
             }
-
+            
             graph.removeNodes(removeList);
             //TODO: fix for the case of CLIQUE_COVERING_ADD_LAYER_CLIQUE inside cliquecovering case.
             uint32_t NumberEdges = graph.getNumEdges();
             uint32_t NumberVertices = graph.getNumVertices();
+            //TODO: make fater computation by using the copy graph before adding layer clique, and only remove nodes on the copy graph for clique covering, and keep the original graph for edge output.
+            //Since clique covering doesnt change the graph structure.
+
             if (cliqueCovering){
                     const string cliqueOutputdir = outputDataset + "/"+outputname+"_ECC_"+to_string(cut)+".txt";
                     auto cliqueCount = max1MinEKCover.countRowMap(cutMap);
@@ -1345,26 +1372,28 @@ int main(int argc, char** argv) {
                     std::ofstream out(cliqueOutputdir, std::ios::out | std::ios::trunc);
                     out <<"# strip length z = " << cut << endl;
                     out <<"# G_z number of vertices: |V| = " << NumberVertices << endl;
-                    out <<"# G_z number of edges: |E| = " << NumberEdges+cliqueEdges << endl;
+                    out <<"# G_z number of edges: |E| = " << NumberEdges << endl;
                     out <<"# G_z number of pieces: |P| = " << layerCliques.size() << endl;
                     //out <<"# number of cliques in the edge-clique cover (# of lines below): |C| = " << cliqueCount+ layerCliques.size() << endl;
 
                 //Piece oriented + clique covering add layer clique.
                 if(!type_oriented && OUTPUT_ADD_LAYER_CLIQUE){                   
                     out <<"# number of cliques in the edge-clique cover (# of lines below): |C| = " << cliqueCount+ layerCliques.size() << endl;
-                    //add layer clique (with cut filter in the edgecover )
                     for (size_t i = 0; i < layerCliques.size(); ++i){
                         const auto& layerClique = layerCliques[i];
+                        if (layerCliques[i].size() <= 1) continue;
                         for (const auto& v : layerClique) {
                             out << v << " ";
                         }
-                        if (i + 1 != layerCliques.size()) out << "\n";
+                        
+                        //if (i + 1 != layerCliques.size()) out << "\n";
+                        out << "\n";
                     }  
                     
                 }else{
                     out <<"# number of cliques in the edge-clique cover (# of lines below): |C| = " << cliqueCount<< endl;
                 }
-                
+                out.close();
                 max1MinEKCover.writeIntoFile(cliqueOutputdir,cutMap);
                 
             }else{
