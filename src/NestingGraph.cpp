@@ -1184,6 +1184,8 @@ int main(int argc, char** argv) {
         }
         double density = (2.0 * (NFPEdges+cliqueEdges)) / (NumberVertices * (NumberVertices - 1));
 
+        cout << " graph edges from Graph: " << graph.getNumEdges() << "\n";
+
         cout << "Graph statistics:\n";
         cout << "  Dataset name:     " << outputname << "\n";
         cout << "  Number of vertices: " << graph.getNumVertices() << "\n";
