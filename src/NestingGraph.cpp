@@ -1365,7 +1365,15 @@ int main(int argc, char** argv) {
             uint32_t NumberVertices = graph.getNumVertices();
             //TODO: make fater computation by using the copy graph before adding layer clique, and only remove nodes on the copy graph for clique covering, and keep the original graph for edge output.
             //Since clique covering doesnt change the graph structure.
+            density = 2*NumberEdges/(NumberVertices*NumberVertices-1);
+            cout << "Graph statistics:\n";
+            cout << "  Dataset name:     " << outputname << "\n";
+            cout << "  Number of vertices: " << NumberVertices << "\n";
+            cout << "  Number of clique edges:   " << cliqueEdges << "\n";
+            cout << "  Number of edges:    " << NumberEdges << "\n";
+            cout << "  Density:            " << density << "\n";
 
+            
             if (cliqueCovering){
                 const string cliqueOutputdir = outputDataset + "/"+outputname+"_ECC_"+to_string(cut)+".txt";
                 auto cliqueCount = max1MinEKCover.countRowMap(cutMap);
@@ -1373,6 +1381,7 @@ int main(int argc, char** argv) {
                 if(OUTPUT_ADD_LAYER_CLIQUE){
                     TotalCliqueCount += layerCliques.size();
                 }
+                cout << "  Number of cliques (clique covering): " << TotalCliqueCount << "\n";
                 //TODO: add latest version of metadata format
                 //# number of cliques in the edge-clique cover (# of lines below): |C| = …
                 std::ofstream out(cliqueOutputdir, std::ios::out | std::ios::trunc);
@@ -1411,6 +1420,7 @@ int main(int argc, char** argv) {
                     out <<"# strip length z = " << cut << endl;
                 graph.writeEdgesToFile(graphOutputPath,cutMap);
             }
+            
 
             if(OUT_OLD_METADATA){
                 const string metadataOutputPath = outputDataset + "/metadata.csv";
@@ -1441,6 +1451,8 @@ int main(int argc, char** argv) {
                 metadataOut.close();
 
             }
+
+            cout << "Finished processing cut : " << cut << "\n";
         }
 
 
