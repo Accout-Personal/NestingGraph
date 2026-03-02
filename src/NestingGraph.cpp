@@ -1211,20 +1211,24 @@ int main(int argc, char** argv) {
             //const string cliqueOutputdir = outputDataset + "/BLAZEWICZ1_ECC_z.txt";
             const string cliqueOutputdir = outputDataset + "/"+outputname+"_ECC_"+to_string_fixed(length,1)+".txt";
             auto cliqueCount = max1MinEKCover.countRowMap();
+            unsigned TotalCliqueCount = cliqueCount;
+            if(OUTPUT_ADD_LAYER_CLIQUE){
+                TotalCliqueCount += total_polygon;
+            }
             //# number of cliques in the edge-clique cover (# of lines below): |C| = …
             std::ofstream out(cliqueOutputdir, std::ios::out | std::ios::trunc);
-            out << fixed << setprecision(1) <<"# strip length z = " << length << endl;
+            
             out <<"# G_z number of vertices: |V| = " << NumberVertices << endl;
             out <<"# G_z number of edges: |E| = " << NFPEdges+cliqueEdges << endl;
-            out <<"# G_z number of pieces: |P| = " << total_polygon << endl;
+            out <<"# number of cliques in the edge-clique cover (# of lines below): |C| = " << TotalCliqueCount << endl;
+            out << fixed << setprecision(1) <<"# strip length z = " << length << endl;
+            out <<"# number of polygons: |P| = " << total_polygon << endl;
             //out <<"# number of cliques in the edge-clique cover (# of lines below): |C| =" << cliqueCount+ layerCliques.size() << endl;
             //Piece oriented + clique covering add layer clique.
             if(!type_oriented && OUTPUT_ADD_LAYER_CLIQUE){
                 cout << "adding layer cliques..\n";                 
                 cout << "clique count: " << cliqueCount << endl;
-                  
-                out <<"# number of cliques in the edge-clique cover (# of lines below): |C| = " << cliqueCount + total_polygon << endl;
-
+                
                 for (const auto& [layer, poly] : layers.layerPoly) {
                     const uint64_t start = layers.layerOfPoint[layer].indexRange.first;
                     const uint64_t end = layers.layerOfPoint[layer].indexRange.second;
@@ -1234,8 +1238,6 @@ int main(int argc, char** argv) {
                     }
                     out << "\n";
                 }   
-            }else{
-                out <<"# number of cliques in the edge-clique cover (# of lines below): |C| = " << cliqueCount<< endl;
             }
             out.close();
             max1MinEKCover.writeIntoFile(cliqueOutputdir);
@@ -1282,8 +1284,8 @@ int main(int argc, char** argv) {
             }
 
             metadataOut <<"Name :\t" <<outputname << "\n";
-            metadataOut <<"Total Pieces :\t" << total_polygon << "\n";
-            metadataOut <<"Type of Pieces :\t" << num_polygon << "\n";
+            metadataOut <<"Total polygons :\t" << total_polygon << "\n";
+            metadataOut <<"Type of polygons :\t" << num_polygon << "\n";
             metadataOut <<"Board Width :\t" << width << "\n";
             metadataOut <<"Board Length :\t" << int(length) << "\n";
             metadataOut <<"Number of Nodes :\t" << graph.getNumVertices() << "\n";
@@ -1318,8 +1320,8 @@ int main(int argc, char** argv) {
             uint32_t TotalVertices = computeTotalVertices(layers.layerOfPoint);
             cutMap = MakeMap(removeList,TotalVertices);
             //prepare layer clique for the cut graph, which is the same as the original graph but with some vertices removed using the map. 
-            //In case of one layer completely removed, also decrease the number of pieces by 1. This is for the metadata of the cut graph, which is different from the original graph. 
-            //The cut graph will have less vertices and edges, and possibly less pieces if some layers are completely removed. 
+            //In case of one layer completely removed, also decrease the number of polygons by 1. This is for the metadata of the cut graph, which is different from the original graph. 
+            //The cut graph will have less vertices and edges, and possibly less polygons if some layers are completely removed. 
             vector<vector<uint32_t>> layerCliques;
             vector<PointCoord> newIndex;
             uint64_t cliqueEdges = 0;
@@ -1365,20 +1367,25 @@ int main(int argc, char** argv) {
             //Since clique covering doesnt change the graph structure.
 
             if (cliqueCovering){
-                    const string cliqueOutputdir = outputDataset + "/"+outputname+"_ECC_"+to_string(cut)+".txt";
-                    auto cliqueCount = max1MinEKCover.countRowMap(cutMap);
-                    //TODO: add latest version of metadata format
-                    //# number of cliques in the edge-clique cover (# of lines below): |C| = …
-                    std::ofstream out(cliqueOutputdir, std::ios::out | std::ios::trunc);
-                    out <<"# strip length z = " << cut << endl;
-                    out <<"# G_z number of vertices: |V| = " << NumberVertices << endl;
-                    out <<"# G_z number of edges: |E| = " << NumberEdges << endl;
-                    out <<"# G_z number of pieces: |P| = " << layerCliques.size() << endl;
-                    //out <<"# number of cliques in the edge-clique cover (# of lines below): |C| = " << cliqueCount+ layerCliques.size() << endl;
+                const string cliqueOutputdir = outputDataset + "/"+outputname+"_ECC_"+to_string(cut)+".txt";
+                auto cliqueCount = max1MinEKCover.countRowMap(cutMap);
+                unsigned TotalCliqueCount = cliqueCount;
+                if(OUTPUT_ADD_LAYER_CLIQUE){
+                    TotalCliqueCount += layerCliques.size();
+                }
+                //TODO: add latest version of metadata format
+                //# number of cliques in the edge-clique cover (# of lines below): |C| = …
+                std::ofstream out(cliqueOutputdir, std::ios::out | std::ios::trunc);
+                
+                out <<"# G_z number of vertices: |V| = " << NumberVertices << endl;
+                out <<"# G_z number of edges: |E| = " << NumberEdges << endl;
+                out <<"# number of cliques in the edge-clique cover (# of lines below): |C| = " << TotalCliqueCount << endl;
+                out <<"# number of polygons: |P| = " << layerCliques.size() << endl;
+                out <<"# strip length z = " << cut << endl;
 
                 //Piece oriented + clique covering add layer clique.
                 if(!type_oriented && OUTPUT_ADD_LAYER_CLIQUE){                   
-                    out <<"# number of cliques in the edge-clique cover (# of lines below): |C| = " << cliqueCount+ layerCliques.size() << endl;
+                    
                     for (size_t i = 0; i < layerCliques.size(); ++i){
                         const auto& layerClique = layerCliques[i];
                         if (layerCliques[i].size() <= 1) continue;
@@ -1390,8 +1397,6 @@ int main(int argc, char** argv) {
                         out << "\n";
                     }  
                     
-                }else{
-                    out <<"# number of cliques in the edge-clique cover (# of lines below): |C| = " << cliqueCount<< endl;
                 }
                 out.close();
                 max1MinEKCover.writeIntoFile(cliqueOutputdir,cutMap);
@@ -1400,10 +1405,10 @@ int main(int argc, char** argv) {
 
                 const string graphOutputPath = outputDataset + "/"+outputname+"_graph_"+to_string(length)+".txt";
                  std::ofstream out(graphOutputPath, std::ios::out | std::ios::trunc);
-                    out <<"# strip length z = " << cut << endl;
                     out <<"# G_z number of vertices: |V| = " << NumberVertices << endl;
                     out <<"# G_z number of edges: |E| = " << NumberEdges << endl;
-                    out <<"# G_z number of pieces: |P| = " << layerCliques.size() << endl;
+                    out <<"# number of polygons: |P| = " << layerCliques.size() << endl;
+                    out <<"# strip length z = " << cut << endl;
                 graph.writeEdgesToFile(graphOutputPath,cutMap);
             }
 
@@ -1415,8 +1420,8 @@ int main(int argc, char** argv) {
                 }
 
                 metadataOut <<"Name :\t" <<outputname << "\n";
-                metadataOut <<"Total Pieces :\t" << total_polygon << "\n";
-                metadataOut <<"Type of Pieces :\t" << num_polygon << "\n";
+                metadataOut <<"Total polygons :\t" << total_polygon << "\n";
+                metadataOut <<"Type of polygons :\t" << num_polygon << "\n";
                 metadataOut <<"Board Width :\t" << width << "\n";
                 metadataOut <<"Board Length :\t" << length << "\n";
                 metadataOut <<"Number of Nodes :\t" << graph.getNumVertices() << "\n";

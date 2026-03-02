@@ -64,8 +64,8 @@ public:
         for (auto v: vlist){
             if (!NodeRemoved[v]){
                 for (auto n:getNeighbors(v)){
-                    adjacencyMatrix[n][v] = true;
-                    adjacencyMatrix[v][n] = true;
+                    adjacencyMatrix[n][v] = false;
+                    adjacencyMatrix[v][n] = false;
                     numberEdges--;
                 }
                 numVertices--;
