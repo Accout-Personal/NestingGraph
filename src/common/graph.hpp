@@ -123,18 +123,29 @@ public:
         if (!outFile) {
             throw std::runtime_error("Could not open file for writing: " + filename);
         }
+        if(Map.size()>1){
+            for (uint32_t i = 0; i < numVertices; ++i) {
+                if(NodeRemoved[i]) continue;
+                for (uint32_t j = i + 1; j < numVertices; ++j) {
+                    if(NodeRemoved[j]) continue;
 
-        for (uint32_t i = 0; i < numVertices; ++i) {
-            if(NodeRemoved[i]) continue;
-            for (uint32_t j = i + 1; j < numVertices; ++j) {
-                if(NodeRemoved[j]) continue;
-
-                if (adjacencyMatrix[i][j]) {
-                    outFile << Map[i] << "\t" << Map[j] << "\n";
+                    if (adjacencyMatrix[i][j]) {
+                        outFile << Map[i] << "\t" << Map[j] << "\n";
+                    }
+                
                 }
-    
+            }
+        }else{
+            for (uint32_t i = 0; i < numVertices; ++i) {
+                for (uint32_t j = i + 1; j < numVertices; ++j) {
+                    if (adjacencyMatrix[i][j]) {
+                        outFile <<i << "\t" <<j << "\n";
+                    }
+                
+                }
             }
         }
+        
 
         outFile.close();
     }

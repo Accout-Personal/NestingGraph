@@ -1365,7 +1365,7 @@ int main(int argc, char** argv) {
             uint32_t NumberVertices = graph.getNumVertices();
             //TODO: make fater computation by using the copy graph before adding layer clique, and only remove nodes on the copy graph for clique covering, and keep the original graph for edge output.
             //Since clique covering doesnt change the graph structure.
-            density = 2*NumberEdges/(NumberVertices*NumberVertices-1);
+            density = (2.0*NumberEdges)/(NumberVertices*NumberVertices-1);
             cout << "Graph statistics:\n";
             cout << "  Dataset name:     " << outputname << "\n";
             cout << "  Number of vertices: " << NumberVertices << "\n";
