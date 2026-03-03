@@ -631,18 +631,20 @@ vector<uint32_t> GetRemoveNodeList(vector<LayerPoints> layerOfPoint, double cut,
 
 }
 
-vector<uint32_t> MakeMap(vector<uint32_t>  removeNodes,uint32_t totalVertice){
+pair <vector<uint32_t>,vector<bool>> MakeMap(vector<uint32_t>  removeNodes,uint32_t totalVertice){
     vector<uint32_t> Map(totalVertice,1);
+    vector<bool> Mask(totalVertice, true);
     for (uint32_t rem:removeNodes){
-        Map[rem] = -1;
+        Map[rem] = UINT32_MAX;
+        Mask[rem] = false;
     }
 
     uint32_t increment=0;
-    for (uint32_t &s:Map){
+    for (uint32_t&s:Map){
         if(s==1) s=increment++;
     }
 
-    return Map;
+    return { Map,Mask };
 }
 
 
@@ -1145,14 +1147,18 @@ int main(int argc, char** argv) {
             if(!type_oriented){
                 //graphCopy useful if needed to compute NFP edges
                 if (CLIQUE_COVERING_ADD_LAYER_CLIQUE){
+                    cout << "Add layer enabled: add layer before clique covering\n";
                     graphCopy.loadGraph(graph); //make a copybackup before adding new edges;
                     //Add clique edges for each layer if not type oriented. And flag is set true
                     addLayerPolyClique(graph, layers);
+                    //cout << "Graph edges before cover"<< graph.getNumEdges() << "\n";
                     cout << "Starting clique covering: Max1-EK\n";
                     max1Cover = maximum1Heuristic(graph);
                     //cout << "Start "
                     max1MinEKCover = expandKouHeuristic(graph, max1Cover);
+                    //cout << "Graph edges after cover"<< graph.getNumEdges() << "\n";
                 }else{
+                    cout << "Add layer disabled: add layer after clique covering\n";
                     cout << "Starting clique covering: Max1-EK\n";
                     max1Cover = maximum1Heuristic(graph);
                     //cout << "Start "
@@ -1313,14 +1319,15 @@ int main(int argc, char** argv) {
         //TODO: cut and write for the rest.
         //if is clique covering, cut the already computed cliques and graph for metadata. DO NOT RECOMPUTE CLIQUE.
         
-        vector<uint32_t> cutMap;
+        //vector<uint32_t> cutMap;
+        //vector<bool>Mask;
         for (auto cut:set["cuts"]){
 
             outputDataset = outputdir + outputname + "\\cut_"+to_string(cut)+"\\";
             fs::create_directories(outputDataset);
             vector<uint32_t> removeList = GetRemoveNodeList(layers.layerOfPoint,cut,length);
             uint32_t TotalVertices = computeTotalVertices(layers.layerOfPoint);
-            cutMap = MakeMap(removeList,TotalVertices);
+            auto [cutMap,Mask] = MakeMap(removeList,TotalVertices);
             //prepare layer clique for the cut graph, which is the same as the original graph but with some vertices removed using the map. 
             //In case of one layer completely removed, also decrease the number of polygons by 1. This is for the metadata of the cut graph, which is different from the original graph. 
             //The cut graph will have less vertices and edges, and possibly less polygons if some layers are completely removed. 
@@ -1333,7 +1340,7 @@ int main(int argc, char** argv) {
                 vector<uint32_t> layerclique;
                 
                 for (const auto& p : layer.innerFitPoints) {
-                    if(cutMap[p.id] != -1){
+                    if(Mask[p.id]){
                         newIndex.push_back(PointCoord{layer.layer,p.x,p.y,cutMap[p.id]});
                         layerclique.push_back(cutMap[p.id]);
                     }
@@ -1359,7 +1366,7 @@ int main(int argc, char** argv) {
             for (const auto& lp : newIndex) {
                 pointsOut << lp.layer << "," << lp.x << "," << lp.y << "," << lp.id << "\n";
             }
-            
+            cout << "removing nodes in cut \n";
             graph.removeNodes(removeList);
             //TODO: fix for the case of CLIQUE_COVERING_ADD_LAYER_CLIQUE inside cliquecovering case.
             uint32_t NumberEdges = graph.getNumEdges();
@@ -1409,7 +1416,7 @@ int main(int argc, char** argv) {
                     
                 }
                 out.close();
-                max1MinEKCover.writeIntoFile(cliqueOutputdir,cutMap);
+                max1MinEKCover.writeIntoFile(cliqueOutputdir,cutMap, Mask);
                 
             }else{
 

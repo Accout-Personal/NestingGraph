@@ -10,6 +10,7 @@
 class Graph {
 private:
     uint32_t numVertices;
+    uint32_t activeVertices;
     uint64_t numberEdges = 0;
     std::vector<std::vector<bool>> adjacencyMatrix;
     std::vector<bool>NodeRemoved;
@@ -19,10 +20,11 @@ public:
     Graph(uint32_t n) : numVertices(n) {
         adjacencyMatrix.resize(n, std::vector<bool>(n, false));
         NodeRemoved.resize(n,false);
+        activeVertices = n;
     }
 
     //COPY GRAPH
-    Graph(uint32_t n, uint64_t numberEdges,std::vector<std::vector<bool>> adjacencyMatrix) : numVertices(n), numberEdges(numberEdges), adjacencyMatrix(adjacencyMatrix) {}
+    Graph(uint32_t n, uint64_t numberEdges,std::vector<std::vector<bool>> adjacencyMatrix) : numVertices(n), numberEdges(numberEdges), adjacencyMatrix(adjacencyMatrix) { activeVertices = n; }
 
     Graph(){}
 
@@ -45,7 +47,7 @@ public:
 
     // Get number of vertices
     uint32_t getNumVertices() const {
-        return numVertices;
+        return activeVertices;
     }
 
     // Get neighbors of a vertex
@@ -59,18 +61,24 @@ public:
         return neighbors;
     }
 
-    //remove an Node
-    void removeNodes(std::vector<uint32_t> vlist){
-        for (auto v: vlist){
-            if (!NodeRemoved[v]){
-                for (auto n:getNeighbors(v)){
-                    adjacencyMatrix[n][v] = false;
+    //remove an list Nodes
+    void removeNodes(const std::vector<uint32_t>& vlist) {
+        for (uint32_t v : vlist) {
+            if (v >= NodeRemoved.size()) continue; // or throw
+            if (NodeRemoved[v]) continue;
+
+            auto neighb = getNeighbors(v);
+            for (uint32_t n : neighb) {
+                if (n >= NodeRemoved.size()) continue; // or throw
+                if (adjacencyMatrix[v][n]) {           // only if edge exists
                     adjacencyMatrix[v][n] = false;
+                    adjacencyMatrix[n][v] = false;
                     numberEdges--;
                 }
-                numVertices--;
-                NodeRemoved[v] = true;
-            }                
+            }
+
+            NodeRemoved[v] = true;
+            activeVertices--;
         }
     }
 
@@ -152,13 +160,13 @@ public:
 
 
     // Get the number of edges in the graph
-    uint32_t getNumEdges() const {
+    uint64_t getNumEdges() const {
         return numberEdges;
     }
 
     // Get the density of the graph
     double getDensity() const {
-        uint32_t n = numVertices;
+        uint32_t n = activeVertices;
         std::cout << "numVertices: " << n << "\n";
         std::cout << "numberEdges: " << numberEdges << "\n";
         uint32_t e = numberEdges;
@@ -263,7 +271,7 @@ public:
         return true;
     }
 
-    uint32_t writeIntoFile(const std::string& filename,const std::vector<uint32_t> &Map = {}){
+    uint32_t writeIntoFile(const std::string& filename,const std::vector<uint32_t> &Map = {}, const std::vector<bool>& mask = {}){
         
         std::ofstream outfileClique(filename, std::ios::app);
         //Some nodes are being cut
@@ -273,7 +281,7 @@ public:
                 std::set<int> vertexes = clique.getVertices();
                 std::vector<int>mappedVertexes;
                 for (int vertex : vertexes){
-                    if (Map[vertex]!=-1){
+                    if (mask[vertex]){
                         mappedVertexes.push_back(Map[vertex]);
                     }
                 }
@@ -305,16 +313,16 @@ public:
         return count;
     }
 
-    uint32_t countRowMap(const std::vector<uint32_t> &Map={}){
+    uint32_t countRowMap(const std::vector<uint32_t>& Map = {}, const std::vector<bool>& mask = {}){
         
         //Some nodes are being cut
         uint32_t count = 0;
-        if (!Map.empty()){ 
+        if (!mask.empty()){
             for (Clique clique : cliques){
                 std::set<int> vertexes = clique.getVertices();
                 std::vector<int>mappedVertexes;
                 for (int vertex : vertexes){
-                    if (Map[vertex]!=-1){
+                    if (mask[vertex]){
                         mappedVertexes.push_back(Map[vertex]);
                     }
                 }
