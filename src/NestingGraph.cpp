@@ -742,7 +742,7 @@ int main(int argc, char** argv) {
     auto dir_path = executable_path_from_argv0(argv[0]).parent_path();
     const string Usagephrase = "--instances <file|dir> Loads one instance JSON file, or a directory of instance JSON files. repeat for multiple file/directory nested directory will be ingnored.\n"
                "--datasets <dir> directory of dataset repeat for multiple directory\n"
-               "--outputdir <dir>[optiional default ./result] \n"
+               "--outputdir <dir>[optional default ./result] \n"
                "--typeOriented <0|1> [optional, default false] \n"
                "--cliqueCovering <0|1> [optional, default false] \n"
                "--width <number> [optional, mandatory if dataset doenst contain it] ignored if specified in json \n"
@@ -1212,7 +1212,7 @@ int main(int argc, char** argv) {
         //TODO: write metadata on top of graph
         // Output graph to file
         cout << "saving result..\n";
-        if(enable_cut_set) outputDataset = outputdir + outputname + "\\cut_" + to_string_fixed(length,1);
+        if(enable_cut_set) outputDataset = outputdir + "/" + outputname + "\\cut_" + to_string_fixed(length,1);
         fs::create_directories(outputDataset);
 
         if(cliqueCovering){
@@ -1323,7 +1323,7 @@ int main(int argc, char** argv) {
         //vector<bool>Mask;
         for (auto cut:set["cuts"]){
 
-            outputDataset = outputdir + outputname + "\\cut_"+to_string(cut)+"\\";
+            outputDataset = outputdir + "/" + outputname + "\\cut_"+to_string(cut)+"\\";
             fs::create_directories(outputDataset);
             vector<uint32_t> removeList = GetRemoveNodeList(layers.layerOfPoint,cut,length);
             uint32_t TotalVertices = computeTotalVertices(layers.layerOfPoint);
