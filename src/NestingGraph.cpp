@@ -776,7 +776,7 @@ int main(int argc, char** argv) {
     bool cuts_set = false;
     bool enable_cut = false;
     bool enable_cut_set = false;
-    
+    bool singleInstace = false;
     
     for (int argi = 1; argi < argc; argi += 2) {
         if (argi + 1 >= argc) {
@@ -849,7 +849,12 @@ int main(int argc, char** argv) {
     
     if(REMOVE_OLD_FOLDER){
         cout << "removing existing output directory\n";
-        std::filesystem::remove_all(outputdir);
+        try{
+            std::filesystem::remove_all(outputdir);
+        }catch(exception & e){
+            cerr << "WARNING: fail to remove old directory\n";
+        }
+        
     }
     unordered_map<string, string> datasetPathMap; //checking duplicates dataset names and fast insert dataset paths
     for (const auto& datasetPath : datasetPaths){
@@ -925,6 +930,10 @@ int main(int argc, char** argv) {
         }
     }
 
+    if (datasets.size() == 1){
+        singleInstace = true;
+    }
+
     if(datasets.size() == 1 && cuts_set){
         datasets[0]["cuts"] = sanitizeCuts(cuts,dataset[0]["length"]);
     }else if(enable_cut_set){
@@ -955,7 +964,9 @@ int main(int argc, char** argv) {
         double length = set["length"].get<double>();
         
         string outputDataset = outputdir + outputname;
-        
+        if(singleInstace){
+            outputDataset = outputdir;
+        }
 
         if (enable_cut_set && set.contains("cuts") && set["cuts"].size()>0){
             if(!set.contains("cuts") || set["cuts"].size()==0) {
@@ -963,7 +974,7 @@ int main(int argc, char** argv) {
                 continue;
             }
 
-            outputDataset = outputdir + outputname + "\\cut_"+to_string_fixed(length,1)+"\\";
+            outputDataset += "\\cut_"+to_string_fixed(length,1)+"\\";
         }
         
         
@@ -1023,7 +1034,8 @@ int main(int argc, char** argv) {
         //for (auto& [key, val] : dataset.items()){
         //    std::cout << key << " " << (dataset[key]["QUANTITY"]) << "\n";
         //}
-
+        
+        cout << "Generating NFP..\n";
         json polygons;
         try {
             //std::cout << "Processing NFP..\n";
@@ -1212,7 +1224,15 @@ int main(int argc, char** argv) {
         //TODO: write metadata on top of graph
         // Output graph to file
         cout << "saving result..\n";
-        if(enable_cut_set) outputDataset = outputdir + "/" + outputname + "\\cut_" + to_string_fixed(length,1);
+        if(enable_cut_set){
+            if(singleInstace){
+                outputDataset = outputdir + "\\cut_" + to_string_fixed(length,1);
+            }
+            else{
+                outputDataset = outputdir + "/" + outputname + "\\cut_" + to_string_fixed(length,1);
+            }
+            
+        } 
         fs::create_directories(outputDataset);
 
         if(cliqueCovering){
@@ -1269,7 +1289,6 @@ int main(int argc, char** argv) {
         }
         
         
-        //"BLAZEWICZ1_polygons_z";
         std::cout << "Writting NFP into JSON\n";
         const string json_output = outputDataset + "/"+outputname+"_polygons_"+to_string_fixed(length,1)+".json"; 
         writeNfpInfpJson(json_output, polygonsWrite);
@@ -1323,7 +1342,13 @@ int main(int argc, char** argv) {
         //vector<bool>Mask;
         for (auto cut:set["cuts"]){
 
-            outputDataset = outputdir + "/" + outputname + "\\cut_"+to_string(cut)+"\\";
+            if(singleInstace){
+                outputDataset = outputdir + "\\cut_"+to_string(cut)+"\\";
+            }
+            else{
+                outputDataset = outputdir + "/" + outputname + "\\cut_"+to_string(cut)+"\\";
+            }
+            
             fs::create_directories(outputDataset);
             vector<uint32_t> removeList = GetRemoveNodeList(layers.layerOfPoint,cut,length);
             uint32_t TotalVertices = computeTotalVertices(layers.layerOfPoint);

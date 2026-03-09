@@ -220,6 +220,9 @@ typedef int ShapeID; // Simple alias for shape identifiers
         if (!cgalPolyA.is_simple())
         {
             std::cerr << "ERROR: Polygon A (fixed Polygon) is not simple!" << std::endl;
+            for (auto &p:cgalPolyA){
+                std::cout << CGAL::to_double(p.x()) << " " << CGAL::to_double(p.y()) << "\n";
+            }
             exit(-1);
         }
 
@@ -227,6 +230,9 @@ typedef int ShapeID; // Simple alias for shape identifiers
         if (!cgalPolyB.is_simple())
         {
             std::cerr << "ERROR: Polygon B (rotating Polygon) is not simple!" << std::endl;
+            for (auto &p:cgalPolyB){
+                std::cout << CGAL::to_double(p.x()) << " " << CGAL::to_double(p.y()) << "\n";
+            }
             exit(-1);
         }
         
