@@ -1,3 +1,7 @@
+#include "common/nfp_lib.hpp"
+#include "common/geometry_util.hpp"
+#include "common/graph.hpp"
+#include "common/cancel_exit.hpp"
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
@@ -5,13 +9,9 @@
 #include <string>
 #include <vector>
 #include <nlohmann/json.hpp>
-#include "common/nfp_lib.hpp"
-#include "common/geometry_util.hpp"
-#include "common/graph.hpp"
 #include <utility>
 #include <limits>
 #include <algorithm>
-
 #include <filesystem>
 #include <system_error>
 
@@ -23,6 +23,7 @@ bool REMOVE_OLD_FOLDER = true;
 bool CLIQUE_COVERING_ADD_LAYER_CLIQUE = true;
 bool OUTPUT_ADD_LAYER_CLIQUE = true;
 bool OUT_OLD_METADATA = false;
+
 
 std::string to_string_fixed(double x, int decimals) {
     std::array<char, 128> buf{};
@@ -739,6 +740,7 @@ void addLayerPolyClique(Graph &graph, LayersResult & layers){
 
 
 int main(int argc, char** argv) {
+    install_cancel_exit_handlers(130); // For non-0 exit code 
     auto dir_path = executable_path_from_argv0(argv[0]).parent_path();
     const string Usagephrase = "--instances <file|dir> Loads one instance JSON file, or a directory of instance JSON files. repeat for multiple file/directory nested directory will be ingnored.\n"
                "--datasets <dir> directory of dataset repeat for multiple directory\n"
@@ -849,7 +851,12 @@ int main(int argc, char** argv) {
     
     if(REMOVE_OLD_FOLDER){
         cout << "removing existing output directory\n";
-        std::filesystem::remove_all(outputdir);
+        try{
+            std::filesystem::remove_all(outputdir);
+        }catch(const exception & e){
+            cout << "fail to remove existing directory!\n";
+        }
+        
     }
     unordered_map<string, string> datasetPathMap; //checking duplicates dataset names and fast insert dataset paths
     for (const auto& datasetPath : datasetPaths){
@@ -925,7 +932,11 @@ int main(int argc, char** argv) {
         }
     }
 
-    if(datasets.size() == 1 && cuts_set){
+    bool singleInstance = false;
+    if(datasets.size() == 1){ singleInstance = true;}
+
+
+    if(singleInstance && cuts_set){
         datasets[0]["cuts"] = sanitizeCuts(cuts,dataset[0]["length"]);
     }else if(enable_cut_set){
         for (auto &set : datasets){
@@ -955,7 +966,7 @@ int main(int argc, char** argv) {
         double length = set["length"].get<double>();
         
         string outputDataset = outputdir + outputname;
-        
+        if(singleInstance){outputDataset = outputdir;}
 
         if (enable_cut_set && set.contains("cuts") && set["cuts"].size()>0){
             if(!set.contains("cuts") || set["cuts"].size()==0) {
@@ -963,7 +974,7 @@ int main(int argc, char** argv) {
                 continue;
             }
 
-            outputDataset = outputdir + outputname + "\\cut_"+to_string_fixed(length,1)+"\\";
+            outputDataset = outputDataset + "\\cut_"+to_string_fixed(length,1)+"\\";
         }
         
         
@@ -1212,12 +1223,21 @@ int main(int argc, char** argv) {
         //TODO: write metadata on top of graph
         // Output graph to file
         cout << "saving result..\n";
-        if(enable_cut_set) outputDataset = outputdir + "/" + outputname + "\\cut_" + to_string_fixed(length,1);
-        fs::create_directories(outputDataset);
+        if(enable_cut_set) {
+            if(singleInstance){
+                outputDataset = outputdir + "/cut_" + to_string_fixed(length,1);
+            }else{
+                outputDataset = outputdir + "/" + outputname + "/cut_" + to_string_fixed(length,1);
+            }
+            
+        }
+
+        if(!is_existing_directory(outputDataset)) fs::create_directories(outputDataset);
+        
 
         if(cliqueCovering){
             //const string cliqueOutputdir = outputDataset + "/BLAZEWICZ1_ECC_z.txt";
-            const string cliqueOutputdir = outputDataset + "/"+outputname+"_ECC_"+to_string_fixed(length,1)+".txt";
+            const string cliqueOutputdir = outputDataset + "/" + outputname+"_ECC_"+to_string_fixed(length,1)+".txt";
             auto cliqueCount = max1MinEKCover.countRowMap();
             unsigned TotalCliqueCount = cliqueCount;
             if(OUTPUT_ADD_LAYER_CLIQUE){
@@ -1251,12 +1271,12 @@ int main(int argc, char** argv) {
             max1MinEKCover.writeIntoFile(cliqueOutputdir);
         }
         else{
-            const string graphOutputPath = outputDataset + "/"+outputname+"_graph_"+to_string_fixed(length,1)+".csv";
+            const string graphOutputPath = outputDataset + "/" + outputname+"_graph_"+to_string_fixed(length,1)+".csv";
             graph.writeEdgesToFile(graphOutputPath);
         }
         
         // Write pointsCoordinate
-        const string pointsOutputPath = outputDataset + "/"+outputname+"_graph2Strip_"+to_string_fixed(length,1)+".txt";
+        const string pointsOutputPath = outputDataset + "/" + outputname+"_graph2Strip_"+to_string_fixed(length,1)+".txt";
         ofstream pointsOut(pointsOutputPath, ios::out | ios::trunc);
         if (!pointsOut) {
             throw runtime_error("Failed to open file for writing: " + pointsOutputPath);
@@ -1271,7 +1291,7 @@ int main(int argc, char** argv) {
         
         //"BLAZEWICZ1_polygons_z";
         std::cout << "Writting NFP into JSON\n";
-        const string json_output = outputDataset + "/"+outputname+"_polygons_"+to_string_fixed(length,1)+".json"; 
+        const string json_output = outputDataset + "/" + outputname+"_polygons_"+to_string_fixed(length,1)+".json"; 
         writeNfpInfpJson(json_output, polygonsWrite);
         //search and substitue polygon string after write.
         vector<string> from;
@@ -1323,8 +1343,14 @@ int main(int argc, char** argv) {
         //vector<bool>Mask;
         for (auto cut:set["cuts"]){
 
-            outputDataset = outputdir + "/" + outputname + "\\cut_"+to_string(cut)+"\\";
-            fs::create_directories(outputDataset);
+            if(singleInstance){
+                outputDataset = outputdir + "\\cut_"+to_string(cut)+"\\";
+            }else{
+                outputDataset = outputdir + "/" + outputname + "\\cut_"+to_string(cut)+"\\";
+            }
+            
+            if(!is_existing_directory(outputDataset)) fs::create_directories(outputDataset);
+
             vector<uint32_t> removeList = GetRemoveNodeList(layers.layerOfPoint,cut,length);
             uint32_t TotalVertices = computeTotalVertices(layers.layerOfPoint);
             auto [cutMap,Mask] = MakeMap(removeList,TotalVertices);
