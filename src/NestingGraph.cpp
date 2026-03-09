@@ -1,3 +1,7 @@
+#include "common/nfp_lib.hpp"
+#include "common/geometry_util.hpp"
+#include "common/graph.hpp"
+#include "common/cancel_exit.hpp"
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
@@ -5,13 +9,9 @@
 #include <string>
 #include <vector>
 #include <nlohmann/json.hpp>
-#include "common/nfp_lib.hpp"
-#include "common/geometry_util.hpp"
-#include "common/graph.hpp"
 #include <utility>
 #include <limits>
 #include <algorithm>
-
 #include <filesystem>
 #include <system_error>
 
@@ -23,6 +23,7 @@ bool REMOVE_OLD_FOLDER = true;
 bool CLIQUE_COVERING_ADD_LAYER_CLIQUE = true;
 bool OUTPUT_ADD_LAYER_CLIQUE = true;
 bool OUT_OLD_METADATA = false;
+
 
 std::string to_string_fixed(double x, int decimals) {
     std::array<char, 128> buf{};
@@ -739,6 +740,7 @@ void addLayerPolyClique(Graph &graph, LayersResult & layers){
 
 
 int main(int argc, char** argv) {
+    install_cancel_exit_handlers(130); // For non-0 exit code 
     auto dir_path = executable_path_from_argv0(argv[0]).parent_path();
     const string Usagephrase = "--instances <file|dir> Loads one instance JSON file, or a directory of instance JSON files. repeat for multiple file/directory nested directory will be ingnored.\n"
                "--datasets <dir> directory of dataset repeat for multiple directory\n"
@@ -964,9 +966,7 @@ int main(int argc, char** argv) {
         double length = set["length"].get<double>();
         
         string outputDataset = outputdir + outputname;
-        if(singleInstace){
-            outputDataset = outputdir;
-        }
+        if(singleInstace){outputDataset = outputdir;}
 
         if (enable_cut_set && set.contains("cuts") && set["cuts"].size()>0){
             if(!set.contains("cuts") || set["cuts"].size()==0) {
@@ -1237,7 +1237,7 @@ int main(int argc, char** argv) {
 
         if(cliqueCovering){
             //const string cliqueOutputdir = outputDataset + "/BLAZEWICZ1_ECC_z.txt";
-            const string cliqueOutputdir = outputDataset + "/"+outputname+"_ECC_"+to_string_fixed(length,1)+".txt";
+            const string cliqueOutputdir = outputDataset + "/" + outputname+"_ECC_"+to_string_fixed(length,1)+".txt";
             auto cliqueCount = max1MinEKCover.countRowMap();
             unsigned TotalCliqueCount = cliqueCount;
             if(OUTPUT_ADD_LAYER_CLIQUE){
@@ -1271,12 +1271,12 @@ int main(int argc, char** argv) {
             max1MinEKCover.writeIntoFile(cliqueOutputdir);
         }
         else{
-            const string graphOutputPath = outputDataset + "/"+outputname+"_graph_"+to_string_fixed(length,1)+".csv";
+            const string graphOutputPath = outputDataset + "/" + outputname+"_graph_"+to_string_fixed(length,1)+".csv";
             graph.writeEdgesToFile(graphOutputPath);
         }
         
         // Write pointsCoordinate
-        const string pointsOutputPath = outputDataset + "/"+outputname+"_graph2Strip_"+to_string_fixed(length,1)+".txt";
+        const string pointsOutputPath = outputDataset + "/" + outputname+"_graph2Strip_"+to_string_fixed(length,1)+".txt";
         ofstream pointsOut(pointsOutputPath, ios::out | ios::trunc);
         if (!pointsOut) {
             throw runtime_error("Failed to open file for writing: " + pointsOutputPath);
@@ -1290,7 +1290,7 @@ int main(int argc, char** argv) {
         
         
         std::cout << "Writting NFP into JSON\n";
-        const string json_output = outputDataset + "/"+outputname+"_polygons_"+to_string_fixed(length,1)+".json"; 
+        const string json_output = outputDataset + "/" + outputname+"_polygons_"+to_string_fixed(length,1)+".json"; 
         writeNfpInfpJson(json_output, polygonsWrite);
         //search and substitue polygon string after write.
         vector<string> from;
