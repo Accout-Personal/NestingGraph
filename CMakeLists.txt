@@ -9,7 +9,6 @@ if(WIN32)
     add_definitions(-DCGAL_USE_STATIC_LIBS=1)
     set(VCPKG_TARGET_TRIPLET "x64-windows-static" CACHE STRING "")
     set(VCPKG_HOST_TRIPLET "x64-windows-static" CACHE STRING "")
-    
 else()
     # Linux/macOS static settings (vcpkg usually uses 'x64-linux')
     # Note: Static linking on Linux is handled slightly differently via compiler flags
@@ -26,6 +25,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_library(utils STATIC
   src/common/geometry_util.cpp
   src/common/nfp_lib.cpp
+  src/common/cancel_exit.cpp
 )
 
 find_package(CGAL CONFIG REQUIRED)
