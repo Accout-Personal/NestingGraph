@@ -1,7 +1,0 @@
-{
-    "dataset":"dagli.json",
-    "outputName":"dagli1",
-    "quantity":1,
-    "width":60,
-    "length":25           
-}
