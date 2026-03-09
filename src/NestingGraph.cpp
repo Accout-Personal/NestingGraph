@@ -938,7 +938,7 @@ int main(int argc, char** argv) {
 
     if(datasets.size() == 1 && cuts_set){
         datasets[0]["cuts"] = sanitizeCuts(cuts,dataset[0]["length"]);
-    }else if(enable_cut_set){
+    }else if(enable_cut){
         for (auto &set : datasets){
             //initialize the length as last cut (longest)
             if (set.contains("cuts")){
@@ -951,6 +951,14 @@ int main(int argc, char** argv) {
             }
         }
         
+    }else{ // no cut, make cut array empty
+        for (auto &set : datasets){
+            
+            if (set.contains("cuts")){
+                set["lengthOriginal"] = set["length"].get<double>();
+                set["cuts"] = {};
+            }
+        }
     }
         
     for (auto &set : datasets){
@@ -968,7 +976,7 @@ int main(int argc, char** argv) {
         string outputDataset = outputdir + outputname;
         if(singleInstace){outputDataset = outputdir;}
 
-        if (enable_cut_set && set.contains("cuts") && set["cuts"].size()>0){
+        if (enable_cut && set.contains("cuts") && set["cuts"].size()>0){
             if(!set.contains("cuts") || set["cuts"].size()==0) {
                 cout << "WARNING: dataset: "<< outputname << " doesnt have cuts field, skipped.\n";
                 continue;
@@ -1224,7 +1232,7 @@ int main(int argc, char** argv) {
         //TODO: write metadata on top of graph
         // Output graph to file
         cout << "saving result..\n";
-        if(enable_cut_set){
+        if(enable_cut){
             if(singleInstace){
                 outputDataset = outputdir + "\\cut_" + to_string_fixed(length,1);
             }
