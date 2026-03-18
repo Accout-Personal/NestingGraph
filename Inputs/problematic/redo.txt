@@ -1,0 +1,36 @@
+[
+    {
+        "dataset":"artif",
+        "outputName":"artif",
+        "quantity":{
+            "piece 1":8,
+            "piece 2":8,
+            "piece 3":8,
+            "piece 4":15,
+            "piece 5":15,
+            "piece 6":15,
+            "piece 7":15,
+            "piece 8":15
+        },
+        "width":27,
+        "length":53,
+        "cuts":[48,49]
+    },
+    {
+            "dataset":"shirts" ,
+            "outputName":"shirts4_8",
+            "quantity":{
+                "PIECE 1":4,
+                "PIECE 2":4,
+                "PIECE 3":4,
+                "PIECE 4":8,
+                "PIECE 5":8,
+                "PIECE 6":8,
+                "PIECE 7":8,
+                "PIECE 8":8
+            },
+            "width":40,
+            "length":35,
+            "cuts":[31,32]
+        },
+]

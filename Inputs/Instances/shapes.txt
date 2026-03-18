@@ -45,7 +45,7 @@
             "quantity":7,
             "width":40,
             "length":48,
-            "cuts":[43,44]            
+            "cuts":[41,42]            
         },
         {
             "dataset":"shapes.json",

@@ -65,7 +65,7 @@
             },
             "width":40,
             "length":35,
-            "cuts":[32,33]
+            "cuts":[31,32]
         },
         {
             "dataset":"shirts" ,
