@@ -1061,12 +1061,10 @@ int main(int argc, char** argv) {
         nlohmann::json board = polygons.at("STRIP");
         polygons.erase("STRIP"); 
         size_t num_polygon = polygons.size();
-
         //quantity can either be a single unsigned int for all polygons or a dictionary of per-polygon quantities
 
         int total_polygon = 0;
         double total_area = 0.0;
-        //cout << polygons.dump(1) << "\n";
         for (auto& [key, val] : polygons.items()){
             total_polygon += polygons[key]["QUANTITY"].get<unsigned int>();
             total_area += polygons[key]["QUANTITY"].get<double>() * std::abs(GeometryUtil::polygonArea(GeometryUtil::parseVertices(polygons[key]["VERTICES"])));
