@@ -106,7 +106,7 @@
         "dataset": "jakobs2.json",
         "width": 35,
         "length": 25,
-        "cuts":[20,21],
+        "cuts":[19,20],
         "quantity": {
             "1": 0,
             "2": 0,
