@@ -31,7 +31,7 @@ json processNFP(json &dataset,double height, double width)
         {0, width}
     };
 
-    // Collect keys of polygon entries to avoid iterating over "rect" or non-polygons later
+    // Collect keys of polygon entries to avoid iterating over "STRIP" or non-polygons later
     std::vector<std::string> polyKeys;
     polyKeys.reserve(dataset.size());
 
@@ -42,6 +42,16 @@ json processNFP(json &dataset,double height, double width)
             polyKeys.push_back(key);
         }
     }
+    // Replace original dataset with the copy that has polygon entries replaced with numbers.
+    json datasetCopy;
+    unsigned int total_polygon = 0;
+    for (auto& key : polyKeys) {
+        datasetCopy[std::to_string(total_polygon)] = dataset[key];
+        key = std::to_string(total_polygon);
+        total_polygon++;
+    }
+
+    dataset = datasetCopy; 
 
     // Main loop: for each fixed polygon
     for (const auto& fixedKey : polyKeys) {
@@ -50,8 +60,8 @@ json processNFP(json &dataset,double height, double width)
         GeometryUtil::Polygon fixedPoly = GeometryUtil::parseVertices(fixedObj["VERTICES"]);
         if (fixedPoly.size() < 3) {
             // Keep structure but empty results
-            fixedObj["innerfit"] = json::array();
-            fixedObj["nfps"] = json::array();
+            fixedObj["INNER-FIT"] = json::array();
+            fixedObj["NO-FIT"] = json::array();
             continue;
         }
 
@@ -63,17 +73,17 @@ json processNFP(json &dataset,double height, double width)
         double FixPolyxPivot = fixedObj["VERTICES"][0]["x"].get<double>();
         double FixPolyyPivot = fixedObj["VERTICES"][0]["y"].get<double>();
 
-        fixedObj["innerfit"] = json::array();
+        fixedObj["INNER-FIT"] = json::array();
         //the pivot point must resides inside or on the boundary of the bounding box.
         // thus always: >= than xMin, <= xMax >=yMin <= yMax
-        fixedObj["innerfit"].push_back({{"x", FixPolyxPivot - polyBBox.xMin},{"y", FixPolyyPivot - polyBBox.yMin}}); //Bottom left 
-        fixedObj["innerfit"].push_back({{"x", height - polyBBox.xMax + FixPolyxPivot},{"y", FixPolyyPivot - polyBBox.yMin}}); //Bottom right
-        fixedObj["innerfit"].push_back({{"x", height- polyBBox.xMax + FixPolyxPivot},{"y", width - polyBBox.yMax + FixPolyyPivot}}); //Top right
-        fixedObj["innerfit"].push_back({{"x", FixPolyxPivot - polyBBox.xMin},{"y",  width - polyBBox.yMax + FixPolyyPivot}}); // Top left
+        fixedObj["INNER-FIT"].push_back({{"x", FixPolyxPivot - polyBBox.xMin},{"y", FixPolyyPivot - polyBBox.yMin}}); //Bottom left 
+        fixedObj["INNER-FIT"].push_back({{"x", height - polyBBox.xMax + FixPolyxPivot},{"y", FixPolyyPivot - polyBBox.yMin}}); //Bottom right
+        fixedObj["INNER-FIT"].push_back({{"x", height- polyBBox.xMax + FixPolyxPivot},{"y", width - polyBBox.yMax + FixPolyyPivot}}); //Top right
+        fixedObj["INNER-FIT"].push_back({{"x", FixPolyxPivot - polyBBox.xMin},{"y",  width - polyBBox.yMax + FixPolyyPivot}}); // Top left
 
 
         // ---- Outer NFPs against all polygons ----
-        fixedObj["nfps"] = json::array();
+        fixedObj["NO-FIT"] = json::array();
 
         for (const auto& rotKey : polyKeys) {
             auto& rotObj = dataset[rotKey];
@@ -84,7 +94,7 @@ json processNFP(json &dataset,double height, double width)
                 json nfpEntry;
                 nfpEntry["POLYGON"] = rotKey;
                 nfpEntry["VERTICES"] = json::array();
-                fixedObj["nfps"].push_back(nfpEntry);
+                fixedObj["NO-FIT"].push_back(nfpEntry);
                 continue;
             }
             std::vector<std::pair<double,double>> polygonPairsFixed;
@@ -133,11 +143,11 @@ json processNFP(json &dataset,double height, double width)
                 nfpEntry["VERTICES"] = json::array();
             }
 
-            fixedObj["nfps"].push_back(nfpEntry);
+            fixedObj["NO-FIT"].push_back(nfpEntry);
         }
     }
     // Store rect in dataset (same top-level field as JS)
-    dataset["rect"] = dumpVertices(rect);
+    dataset["STRIP"] = dumpVertices(rect);
     return dataset;
 }
 }

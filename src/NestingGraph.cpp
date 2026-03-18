@@ -104,12 +104,12 @@ static inline void buildNfpPatternsForPoly(
     NfpIndexTableT& nfpIndexTable,
     NfpPosTableT& nfpPosTable
 ) {
-    if (!poly.contains("nfps")) return;
+    if (!poly.contains("NO-FIT")) return;
 
     const double px = pivot.at("x").get<double>();
     const double py = pivot.at("y").get<double>();
 
-    for (auto& nfp : poly.at("nfps")) {
+    for (auto& nfp : poly.at("NO-FIT")) {
 
         // --- pivot-zeroing nfp vertices ---
         auto& verts = nfp.at("VERTICES");
@@ -258,7 +258,7 @@ static inline LayersResult generateLayers(
         unsigned int quantity = mainPiece.value("QUANTITY", 1);
         if (type_oriented && quantity > 1) quantity = 1;
 
-        const GeometryUtil:: Polygon innerfit = GeometryUtil::parseVertices(mainPiece.at("innerfit"));
+        const GeometryUtil:: Polygon innerfit = GeometryUtil::parseVertices(mainPiece.at("INNER-FIT"));
         const double innerFitArea = std::abs(GeometryUtil::polygonArea(innerfit));
         
         const double boardArea = length * width;
@@ -996,6 +996,7 @@ int main(int argc, char** argv) {
         json dataset = json::parse(file);
 
         //remove board info from dataset to prevent interference with NFP processing and polygon iteration
+        dataset.erase("STRIP");
         dataset.erase("rect");
         dataset.erase("length");
         dataset.erase("width");
@@ -1057,15 +1058,15 @@ int main(int argc, char** argv) {
         // write the dataset with NFP into JSON file
         
 
-        nlohmann::json board = polygons.at("rect");
-        polygons.erase("rect"); 
+        nlohmann::json board = polygons.at("STRIP");
+        polygons.erase("STRIP"); 
         size_t num_polygon = polygons.size();
 
         //quantity can either be a single unsigned int for all polygons or a dictionary of per-polygon quantities
 
         int total_polygon = 0;
         double total_area = 0.0;
-
+        //cout << polygons.dump(1) << "\n";
         for (auto& [key, val] : polygons.items()){
             total_polygon += polygons[key]["QUANTITY"].get<unsigned int>();
             total_area += polygons[key]["QUANTITY"].get<double>() * std::abs(GeometryUtil::polygonArea(GeometryUtil::parseVertices(polygons[key]["VERTICES"])));
@@ -1078,7 +1079,7 @@ int main(int argc, char** argv) {
         for (auto& [key, poly] : polygons.items()){
 
             json& pivot = poly.at("VERTICES").at(0);
-            json& innerfit = poly.at("innerfit");
+            json& innerfit = poly.at("INNER-FIT");
 
             //pivot the polygon
             for (auto& v : polygons.at(key).at("VERTICES")) {
@@ -1257,7 +1258,7 @@ int main(int argc, char** argv) {
             out <<"# G_z number of vertices: |V| = " << NumberVertices << endl;
             out <<"# G_z number of edges: |E| = " << NFPEdges+cliqueEdges << endl;
             out <<"# number of cliques in the edge-clique cover (# of lines below): |C| = " << TotalCliqueCount << endl;
-            out << fixed << setprecision(1) <<"# strip length z = " << length << endl;
+            out << fixed << setprecision(1) <<"#strip height z = " << length << endl;
             out <<"# number of polygons: |P| = " << total_polygon << endl;
             //out <<"# number of cliques in the edge-clique cover (# of lines below): |C| =" << cliqueCount+ layerCliques.size() << endl;
             //Piece oriented + clique covering add layer clique.
@@ -1281,6 +1282,16 @@ int main(int argc, char** argv) {
         else{
             const string graphOutputPath = outputDataset + "/" + outputname+"_graph_"+to_string_fixed(length,1)+".csv";
             graph.writeEdgesToFile(graphOutputPath);
+
+            const string layerVertices = outputDataset + "/"+outputname+"_layerClique_"+to_string(length)+".txt";
+            std::ofstream outLayerVertices(layerVertices, std::ios::out | std::ios::trunc);
+            outLayerVertices <<"#start end vertices\n";
+            for (const auto& [layer, poly] : layers.layerPoly) {
+                const uint64_t start = layers.layerOfPoint[layer].indexRange.first;
+                const uint64_t end = layers.layerOfPoint[layer].indexRange.second;
+                outLayerVertices << start << " " << end << "\n";
+            }
+            outLayerVertices.close();
         }
         
         // Write pointsCoordinate
@@ -1292,7 +1303,7 @@ int main(int argc, char** argv) {
         pointsOut << "# ID polygon, strip coord h (height), strip coord w (width), ID of vertex\n";
         for (const auto& lp : layers.layerOfPoint) {
             for (const auto& p : lp.innerFitPoints) {
-                pointsOut << lp.layer << "," << p.x << "," << p.y << "," << p.id << "\n";
+                pointsOut << lp.polygon << "," << p.x << "," << p.y << "," << p.id << "\n";
             }
         }
         
@@ -1300,14 +1311,6 @@ int main(int argc, char** argv) {
         std::cout << "Writting NFP into JSON\n";
         const string json_output = outputDataset + "/" + outputname+"_polygons_"+to_string_fixed(length,1)+".json"; 
         writeNfpInfpJson(json_output, polygonsWrite);
-        //search and substitue polygon string after write.
-        vector<string> from;
-        vector<string> to;
-        for (const auto& lp : layers.layerOfPoint) {
-           from.push_back("\""+lp.polygon+"\"");
-           to.push_back("\""+to_string(lp.layer)+"\"");
-        }
-        SearchReplaceInFile(json_output, from, to);
 
        
         ////Write metadata
@@ -1341,9 +1344,6 @@ int main(int argc, char** argv) {
 
         }
         
-
-
-        //TODO: cut and write for the rest.
         //if is clique covering, cut the already computed cliques and graph for metadata. DO NOT RECOMPUTE CLIQUE.
         
         //vector<uint32_t> cutMap;
@@ -1374,7 +1374,7 @@ int main(int argc, char** argv) {
                 
                 for (const auto& p : layer.innerFitPoints) {
                     if(Mask[p.id]){
-                        newIndex.push_back(PointCoord{layer.layer,p.x,p.y,cutMap[p.id]});
+                        newIndex.push_back(PointCoord{std::stoul(layer.polygon),p.x,p.y,cutMap[p.id]});
                         layerclique.push_back(cutMap[p.id]);
                     }
                 }
@@ -1401,11 +1401,10 @@ int main(int argc, char** argv) {
             }
             cout << "removing nodes in cut \n";
             graph.removeNodes(removeList);
-            //TODO: fix for the case of CLIQUE_COVERING_ADD_LAYER_CLIQUE inside cliquecovering case.
+            
             uint32_t NumberEdges = graph.getNumEdges();
             uint32_t NumberVertices = graph.getNumVertices();
-            //TODO: make fater computation by using the copy graph before adding layer clique, and only remove nodes on the copy graph for clique covering, and keep the original graph for edge output.
-            //Since clique covering doesnt change the graph structure.
+            
             density = (2.0*NumberEdges)/(NumberVertices*NumberVertices-1);
             cout << "Graph statistics:\n";
             cout << "  Dataset name:     " << outputname << "\n";
@@ -1423,15 +1422,16 @@ int main(int argc, char** argv) {
                     TotalCliqueCount += layerCliques.size();
                 }
                 cout << "  Number of cliques (clique covering): " << TotalCliqueCount << "\n";
-                //TODO: add latest version of metadata format
+                
                 //# number of cliques in the edge-clique cover (# of lines below): |C| = …
                 std::ofstream out(cliqueOutputdir, std::ios::out | std::ios::trunc);
                 
                 out <<"# G_z number of vertices: |V| = " << NumberVertices << endl;
                 out <<"# G_z number of edges: |E| = " << NumberEdges << endl;
                 out <<"# number of cliques in the edge-clique cover (# of lines below): |C| = " << TotalCliqueCount << endl;
+                out <<"# strip height z = " << cut << endl;
                 out <<"# number of polygons: |P| = " << layerCliques.size() << endl;
-                out <<"# strip length z = " << cut << endl;
+                
 
                 //Piece oriented + clique covering add layer clique.
                 if(!type_oriented && OUTPUT_ADD_LAYER_CLIQUE){                   
@@ -1454,12 +1454,20 @@ int main(int argc, char** argv) {
             }else{
 
                 const string graphOutputPath = outputDataset + "/"+outputname+"_graph_"+to_string(length)+".txt";
-                 std::ofstream out(graphOutputPath, std::ios::out | std::ios::trunc);
-                    out <<"# G_z number of vertices: |V| = " << NumberVertices << endl;
-                    out <<"# G_z number of edges: |E| = " << NumberEdges << endl;
-                    out <<"# number of polygons: |P| = " << layerCliques.size() << endl;
-                    out <<"# strip length z = " << cut << endl;
+                std::ofstream out(graphOutputPath, std::ios::out | std::ios::trunc);
+                out <<"# G_z number of vertices: |V| = " << NumberVertices << endl;
+                out <<"# G_z number of edges: |E| = " << NumberEdges << endl;
+                out <<"# number of polygons: |P| = " << layerCliques.size() << endl;
+                out <<"# strip length z = " << cut << endl;
                 graph.writeEdgesToFile(graphOutputPath,cutMap);
+                const string layerVertices = outputDataset + "/"+outputname+"_layerClique_"+to_string(length)+".txt";
+                std::ofstream outLayerVertices(layerVertices, std::ios::out | std::ios::trunc);
+                outLayerVertices <<"#start end vertices\n";
+                for (const auto& layerClique : layerCliques){
+                    outLayerVertices << layerClique[0] << " " << layerClique.back() << "\n";
+                }
+
+
             }
             
 
