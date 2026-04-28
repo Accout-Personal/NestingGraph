@@ -492,6 +492,164 @@ void testSimple() {
     }
 }
 
+void Test_interlocking_point(){
+    std::cout << "\n" << std::string(70, '=') << "\n";
+    std::cout << "TEST Simple polygon with interlocking point hole in NFP.\n";
+    std::cout << std::string(70, '=') << "\n\n";
+    //
+    
+
+
+    // L-1
+    std::vector<Point> verts_a = {
+        Point(0,0),
+        Point(5,0),
+        Point(5,4),
+        Point(4,3),
+        Point(4,8),
+        Point(5,7),
+        Point(5,10),
+        Point(0,10)
+    };
+
+    // L-2
+    std::vector<Point> verts_b = {
+        Point(5,0),
+        Point(10,0),
+        Point(10,10),
+        Point(5,10),
+        Point(5,7),
+        Point(4,8),
+        Point(4,3),
+        Point(5,4)
+    };
+
+    Polygon poly_a(verts_a);
+    Polygon poly_b(verts_b);
+
+    printPolygon("Polygon A (L-shape)", poly_a);
+    printPolygon("Polygon B (L-shape)", poly_b);
+
+    
+    auto nfp = nfp::processNFP(poly_a, poly_b);
+
+    printNFP(nfp);
+
+    // Verify no self-intersection
+    
+    if (!nfp.empty()) {
+        std::cout << "NFP generated successfully with " << nfp[0].size() << " vertices\n";
+        std::cout << "Visual inspection needed to verify correctness.\n";
+    }
+
+}
+
+void Test_interlocking_line() {
+    std::cout << "\n" << std::string(70, '=') << "\n";
+    std::cout << "TEST Simple polygon with interlocking line hole in NFP.\n";
+    std::cout << std::string(70, '=') << "\n\n";
+
+    // L-1
+    std::vector<Point> verts_a = {
+        Point(0,0),
+        Point(5,0),
+        Point(5,4),
+        Point(4,3),
+        Point(2,3),
+        Point(2,7),
+        Point(4,7),
+        Point(5,6),
+        Point(5,10),
+        Point(0,10)
+    };
+
+    // L-2
+    std::vector<Point> verts_b = {
+        Point(5,0),
+        Point(10,0),
+        Point(10,10),
+        Point(5,10),
+        Point(5,6),
+        Point(4,7),
+        Point(2,7),
+        Point(2,3),
+        Point(4,3),
+        Point(5,4)
+    };
+
+    Polygon poly_a(verts_a);
+    Polygon poly_b(verts_b);
+
+    printPolygon("Polygon A (L-shape)", poly_a);
+    printPolygon("Polygon B (L-shape)", poly_b);
+
+    
+    auto nfp = nfp::processNFP(poly_a, poly_b);
+
+    printNFP(nfp);
+
+    // Verify no self-intersection
+    
+    if (!nfp.empty()) {
+        std::cout << "NFP generated successfully with " << nfp[0].size() << " vertices\n";
+        std::cout << "Visual inspection needed to verify correctness.\n";
+    }
+}
+
+void Test_interlocking_hole() {
+    std::cout << "\n" << std::string(70, '=') << "\n";
+    std::cout << "TEST Simple polygon with interlocking area hole in NFP.\n";
+    std::cout << std::string(70, '=') << "\n\n";
+
+    // L-1
+    std::vector<Point> verts_a = {
+        Point(0,0),
+        Point(5,0),
+        Point(5,4),
+        Point(4,3),
+        Point(2,3),
+        Point(2,7),
+        Point(4,7),
+        Point(5,6),
+        Point(5,10),
+        Point(0,10)
+    };
+
+    // L-2
+    std::vector<Point> verts_b = {
+        Point(5,0),
+        Point(10,0),
+        Point(10,10),
+        Point(5,10),
+        Point(5,5),
+        Point(3,5),
+        Point(3,6),
+        Point(2,6),
+        Point(2,3),
+        Point(3,3),
+        Point(3,4),
+        Point(5,4)
+    };
+
+    Polygon poly_a(verts_a);
+    Polygon poly_b(verts_b);
+
+    printPolygon("Polygon A (L-shape)", poly_a);
+    printPolygon("Polygon B (L-shape)", poly_b);
+
+    
+    auto nfp = nfp::processNFP(poly_a, poly_b);
+
+    printNFP(nfp);
+
+    // Verify no self-intersection
+    
+    if (!nfp.empty()) {
+        std::cout << "NFP generated successfully with " << nfp[0].size() << " vertices\n";
+        std::cout << "Visual inspection needed to verify correctness.\n";
+    }
+}
+
 
 int main() {
     std::cout << "NestingGraph NFP Test Program\n";

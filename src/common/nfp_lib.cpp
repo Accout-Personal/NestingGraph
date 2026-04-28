@@ -126,6 +126,13 @@ json processNFP(json &dataset,double height, double width)
             if (!outNfps.empty() && !outNfps[0].empty()) {
                 json Jout = json::array();
                 for (auto outV :outNfps[0]) Jout.push_back({{"x",outV.first},{"y",outV.second}});
+                for (auto outPoly= outNfps.begin()+1;outPoly!=outNfps.end();outPoly++){
+                    for (auto outV :*outPoly)
+                    {
+                        std::cout << "x:" << outV.first << " y: " << outV.second << std::endl;
+                    }
+                    
+                }
                 nfpEntry["VERTICES"] = Jout;
                 
             } else {
