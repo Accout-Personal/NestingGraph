@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <system_error>
+#include <chrono>
 
 using namespace std;
 
@@ -1043,17 +1044,20 @@ int main(int argc, char** argv) {
         //for (auto& [key, val] : dataset.items()){
         //    std::cout << key << " " << (dataset[key]["QUANTITY"]) << "\n";
         //}
-        
+        auto start = std::chrono::steady_clock::now();
         cout << "Generating NFP..\n";
         json polygons;
         try {
-            //std::cout << "Processing NFP..\n";
+            std::cout << "Processing NFP..\n";
             polygons = NFPTool::processNFP(dataset, length, width);
         } catch (const exception& e) {
             cerr << "Error during NFP processing: " << e.what() << "\n";
             return 1;
         }
         json polygonsWrite = polygons;
+        auto end = std::chrono::steady_clock::now();
+        long long total_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+        cout << "NFP generated time estimation: " << total_ms << " ms" << endl;
         //std::cout << "NFP Generated:" << polygons.dump(1) << "\n";
         // write the dataset with NFP into JSON file
         

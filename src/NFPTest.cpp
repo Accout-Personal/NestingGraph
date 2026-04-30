@@ -527,8 +527,8 @@ void Test_interlocking_point(){
     Polygon poly_a(verts_a);
     Polygon poly_b(verts_b);
 
-    printPolygon("Polygon A (L-shape)", poly_a);
-    printPolygon("Polygon B (L-shape)", poly_b);
+    printPolygon("Polygon A (The die)", poly_a);
+    printPolygon("Polygon B (the tap)", poly_b);
 
     
     auto nfp = nfp::processNFP(poly_a, poly_b);
@@ -570,18 +570,20 @@ void Test_interlocking_line() {
         Point(10,10),
         Point(5,10),
         Point(5,6),
-        Point(4,7),
+        Point(3,6),
+        Point(3,7),
         Point(2,7),
         Point(2,3),
-        Point(4,3),
+        Point(3,3),
+        Point(3,4),
         Point(5,4)
     };
 
     Polygon poly_a(verts_a);
     Polygon poly_b(verts_b);
 
-    printPolygon("Polygon A (L-shape)", poly_a);
-    printPolygon("Polygon B (L-shape)", poly_b);
+    printPolygon("Polygon A (The die)", poly_a);
+    printPolygon("Polygon B (The tap)", poly_b);
 
     
     auto nfp = nfp::processNFP(poly_a, poly_b);
@@ -634,8 +636,8 @@ void Test_interlocking_hole() {
     Polygon poly_a(verts_a);
     Polygon poly_b(verts_b);
 
-    printPolygon("Polygon A (L-shape)", poly_a);
-    printPolygon("Polygon B (L-shape)", poly_b);
+    printPolygon("Polygon A (the die)", poly_a);
+    printPolygon("Polygon B (the tap)", poly_b);
 
     
     auto nfp = nfp::processNFP(poly_a, poly_b);
@@ -653,11 +655,13 @@ void Test_interlocking_hole() {
 
 int main() {
     std::cout << "NestingGraph NFP Test Program\n";
-    //test2_L_shape_square();
+    Test_interlocking_point();
+    Test_interlocking_line();
+    Test_interlocking_hole();
     //test3_L_shape_L();
     //test4();
     //test5();
     //test6();
-    testSimple();
+    //testSimple();
     return 0;
 }
