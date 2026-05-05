@@ -70,18 +70,71 @@ void printPolygon(const std::string& name, const Polygon& poly) {
     std::cout << std::endl;
 }
 
-void printNFP(const std::vector<std::vector<Point>>& nfp) {
-    std::cout << "NFP: " << nfp.size() << " cycle(s)\n";
+static const char* cycleRoleToString(nfp::NFPCycleRole role) {
+    switch (role) {
+    case nfp::NFPCycleRole::OuterBoundary:
+        return "OuterBoundary";
+    case nfp::NFPCycleRole::HoleBoundary:
+        return "HoleBoundary";
+    case nfp::NFPCycleRole::FeasiblePocket:
+        return "FeasiblePocket";
+    default:
+        return "Unknown";
+    }
+}
+
+void printNFP(const nfp::NFPResult& nfpResult) {
+    std::cout << "NFP Result\n";
     std::cout << std::string(60, '=') << "\n\n";
 
-    for (size_t i = 0; i < nfp.size(); i++) {
-        std::cout << "Cycle " << (i + 1) << " (" << nfp[i].size() << " points):\n";
-        for (size_t j = 0; j < nfp[i].size(); j++) {
-            std::cout << "  p" << j << ": (" << std::fixed << std::setprecision(4)
-                << nfp[i][j].first << ", " << nfp[i][j].second << ")\n";
+    std::cout << "Cycles: " << nfpResult.cycles.size() << "\n";
+    std::cout << std::string(60, '-') << "\n";
+
+    for (size_t i = 0; i < nfpResult.cycles.size(); i++) {
+        const auto& cycle = nfpResult.cycles[i];
+
+        std::cout << "Cycle " << (i + 1)
+            << " [" << cycleRoleToString(cycle.role) << "]"
+            << " (" << cycle.points.size() << " points):\n";
+
+        for (size_t j = 0; j < cycle.points.size(); j++) {
+            const auto& p = cycle.points[j];
+
+            std::cout << "  p" << j << ": ("
+                << std::fixed << std::setprecision(4)
+                << p.x << ", " << p.y << ")\n";
         }
-        std::cout << std::endl;
+
+        std::cout << "\n";
     }
+
+    std::cout << "Slits: " << nfpResult.slits.size() << "\n";
+    std::cout << std::string(60, '-') << "\n";
+
+    for (size_t i = 0; i < nfpResult.slits.size(); i++) {
+        const auto& s = nfpResult.slits[i];
+
+        std::cout << "Slit " << (i + 1) << ":\n";
+        std::cout << "  a: ("
+            << std::fixed << std::setprecision(4)
+            << s.a.x << ", " << s.a.y << ")\n";
+        std::cout << "  b: ("
+            << std::fixed << std::setprecision(4)
+            << s.b.x << ", " << s.b.y << ")\n\n";
+    }
+
+    std::cout << "Isolated points: " << nfpResult.isolated_points.size() << "\n";
+    std::cout << std::string(60, '-') << "\n";
+
+    for (size_t i = 0; i < nfpResult.isolated_points.size(); i++) {
+        const auto& p = nfpResult.isolated_points[i];
+
+        std::cout << "Point " << (i + 1) << ": ("
+            << std::fixed << std::setprecision(4)
+            << p.x << ", " << p.y << ")\n";
+    }
+
+    std::cout << "\n";
 }
 
 
@@ -120,11 +173,6 @@ void test2_L_shape_square() {
     printNFP(nfp);
 
     // Verify no self-intersection
-    
-    if (!nfp.empty()) {
-        std::cout << "NFP generated successfully with " << nfp[0].size() << " vertices\n";
-        std::cout << "Visual inspection needed to verify correctness.\n";
-    }
 }
 
 
@@ -164,12 +212,50 @@ void test3_L_shape_L() {
 
     printNFP(nfp);
 
-    // Verify no self-intersection
-    
-    if (!nfp.empty()) {
-        std::cout << "NFP generated successfully with " << nfp[0].size() << " vertices\n";
-        std::cout << "Visual inspection needed to verify correctness.\n";
-    }
+
+}
+
+void test4_anomalyFalseSlit() {
+    std::cout << "\n" << std::string(70, '=') << "\n";
+    std::cout << "TEST 4:square and simple\n";
+    std::cout << std::string(70, '=') << "\n\n";
+
+    // Polygon 1
+    std::vector<Point> verts_a = {
+    Point(0, 0),
+    Point(3, 0),
+    Point(3, 1),
+    Point(5, 2),
+    Point(5, 3),
+    Point(6, 4),
+    Point(4, 4),
+    Point(4, 3),
+    Point(2, 2),
+    Point(2, 4),
+    Point(0, 4),
+    Point(1, 1)
+    };
+
+    // Polygon 2
+    std::vector<Point> verts_b = {
+        Point(0, 0),
+        Point(2, 0),
+        Point(2, 2),
+        Point(0, 2)
+    };
+
+    Polygon poly_a(verts_a);
+    Polygon poly_b(verts_b);
+
+    printPolygon("Polygon A (square )", poly_a);
+    printPolygon("Polygon B (simple)", poly_b);
+
+
+    auto nfp = nfp::processNFP(poly_a, poly_b);
+
+    printNFP(nfp);
+
+
 }
 //
 //
@@ -232,10 +318,6 @@ void test3_L_shape_L() {
 //
 //    // Verify no self-intersection
 //    
-//    if (!nfp.empty()) {
-//        std::cout << "NFP generated successfully with " << nfp[0].size() << " vertices\n";
-//        std::cout << "Visual inspection needed to verify correctness.\n";
-//    }
 //}
 //
 //int main() {
@@ -330,10 +412,7 @@ void test5() {
 
     // Verify no self-intersection
     
-    if (!nfp.empty()) {
-        std::cout << "NFP generated successfully with " << nfp[0].size() << " vertices\n";
-        std::cout << "Visual inspection needed to verify correctness.\n";
-    }
+
 }
 
 
@@ -384,10 +463,7 @@ void test4() {
     printNFP(nfp);
     //
 
-    if (!nfp.empty()) {
-        std::cout << "NFP generated successfully with " << nfp[0].size() << " vertices\n";
-        std::cout << "Visual inspection needed to verify correctness.\n";
-    }
+
 }
 
 
@@ -444,11 +520,7 @@ void test6() {
 //
 
     // Verify no self-intersection
-    
-    if (!nfp.empty()) {
-        std::cout << "NFP generated successfully with " << nfp[0].size() << " vertices\n";
-        std::cout << "Visual inspection needed to verify correctness.\n";
-    }
+
 }
 
 
@@ -485,11 +557,7 @@ void testSimple() {
     printNFP(nfp);
 
     // Verify no self-intersection
-    
-    if (!nfp.empty()) {
-        std::cout << "NFP generated successfully with " << nfp[0].size() << " vertices\n";
-        std::cout << "Visual inspection needed to verify correctness.\n";
-    }
+
 }
 
 void Test_interlocking_point(){
@@ -536,11 +604,7 @@ void Test_interlocking_point(){
     printNFP(nfp);
 
     // Verify no self-intersection
-    
-    if (!nfp.empty()) {
-        std::cout << "NFP generated successfully with " << nfp[0].size() << " vertices\n";
-        std::cout << "Visual inspection needed to verify correctness.\n";
-    }
+
 
 }
 
@@ -591,11 +655,7 @@ void Test_interlocking_line() {
     printNFP(nfp);
 
     // Verify no self-intersection
-    
-    if (!nfp.empty()) {
-        std::cout << "NFP generated successfully with " << nfp[0].size() << " vertices\n";
-        std::cout << "Visual inspection needed to verify correctness.\n";
-    }
+
 }
 
 void Test_interlocking_hole() {
@@ -645,11 +705,7 @@ void Test_interlocking_hole() {
     printNFP(nfp);
 
     // Verify no self-intersection
-    
-    if (!nfp.empty()) {
-        std::cout << "NFP generated successfully with " << nfp[0].size() << " vertices\n";
-        std::cout << "Visual inspection needed to verify correctness.\n";
-    }
+
 }
 
 
@@ -658,6 +714,7 @@ int main() {
     Test_interlocking_point();
     Test_interlocking_line();
     Test_interlocking_hole();
+    test4_anomalyFalseSlit();
     //test3_L_shape_L();
     //test4();
     //test5();

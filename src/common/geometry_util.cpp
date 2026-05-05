@@ -105,6 +105,26 @@ double polygonArea(const Polygon& p) {
     return static_cast<double>(a * 0.5);
 }
 
+bool pointInSegment(const Point& point, const Polygon& slit) {
+
+    if (slit.size() != 2) return false;
+    // exactly on vertices
+    if (almostEqual(slit[0].x, point.x) && almostEqual(slit[0].y, point.y)) {
+        return true;
+    }
+
+    if (almostEqual(slit[1].x, point.x) && almostEqual(slit[1].y, point.y)) {
+        return true;
+    }
+
+    // exactly on a segment 
+    if (onSegment(Point{ slit[0].x, slit[0].y }, Point{ slit[1].x, slit[1].y }, point)) {
+        return true;
+    }
+
+    return false;
+}
+
 int pointInPolygon(const Point& point, const Polygon& polygon) {
     if (polygon.size() < 3) {
         // JS: return null

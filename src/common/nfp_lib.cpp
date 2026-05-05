@@ -20,8 +20,7 @@ static bool hasVerticesObject(const json& obj) {
 }
 
 
-json processNFP(json &dataset,double height, double width)
-{
+json processNFP(json &dataset,double height, double width){
     //height = lenght
     
     GeometryUtil::Polygon rect = {
@@ -122,27 +121,52 @@ json processNFP(json &dataset,double height, double width)
 
             json nfpEntry;
             nfpEntry["POLYGON"] = rotKey;
+            
+            nfpEntry["NFP_HOLES"] =  json::array();
+            nfpEntry["NFP_SLITS"] =  json::array();
+            nfpEntry["NFP_POINTS"] =  json::array();
+            if (!outNfps.cycles.empty()) {
+                
+                for (auto cycle : outNfps.cycles){
+                    json JoutCycles = json::array();
+                    for (auto outV :cycle.points) JoutCycles.push_back({{"x",outV.x},{"y",outV.y}});
 
-            if (!outNfps.empty() && !outNfps[0].empty()) {
-                json Jout = json::array();
-                for (auto outV :outNfps[0]) Jout.push_back({{"x",outV.first},{"y",outV.second}});
-                for (auto outPoly= outNfps.begin()+1;outPoly!=outNfps.end();outPoly++){
-                    for (auto outV :*outPoly)
-                    {
-                        std::cout << "x:" << outV.first << " y: " << outV.second << std::endl;
+                    std::string entry;
+                    if (cycle.role == nfp::NFPCycleRole::OuterBoundary){
+                        nfpEntry["VERTICES"] = JoutCycles;
                     }
-                    
+                    else if(cycle.role == nfp::NFPCycleRole::HoleBoundary){
+                        nfpEntry["NFP_HOLES"].push_back(JoutCycles);
+                    }
+
                 }
-                nfpEntry["VERTICES"] = Jout;
+                
+
+                for (auto slit: outNfps.slits){
+                    std::cout << "slits detected: x1:" << slit.a.x << " y1:" << slit.a.y << " x2:" << slit.b.x << " y2:" << slit.b.y << std::endl;
+                    json JoutSlits = json::array();
+                    JoutSlits.push_back({ {"x",slit.a.x},{"y",slit.a.y} });
+                    JoutSlits.push_back({ {"x",slit.b.x},{"y",slit.b.y} });
+                    nfpEntry["NFP_SLITS"].push_back(JoutSlits);
+                }
+
+                json JoutPoint = json::array();
+                for (auto point: outNfps.isolated_points){
+                    JoutPoint.push_back({{"x",point.x},{"y",point.y}});
+                }
+                
+                if (! JoutPoint.empty()){
+                    nfpEntry["NFP_POINTS"].push_back(JoutPoint);
+                }                
                 
             } else {
                 
                 std::cerr << "ERROR: Empty NFP. Terminating\n";
                 std::cerr << "Fixed Polygon:" << fixedKey << " RotPolygon: " << rotKey << std::endl; 
-                for (auto SingleNfps: outNfps)
+                for (auto SingleNfps: outNfps.cycles)
                 {   
                     std::cerr <<"printing nfps..\n";
-                    for (auto outV: SingleNfps) std::cerr << "x: "<< outV.first <<" y:" << outV.second <<std::endl;
+                    for (auto outV: SingleNfps.points) std::cerr << "x: "<< outV.x <<" y:" << outV.y <<std::endl;
                 }
                 
                 //std::cerr << "datset: " << dataset << "\n";

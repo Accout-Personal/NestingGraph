@@ -18,8 +18,35 @@ using Point   = std::pair<double,double>;
 using Polygon = std::vector<Point>;
 using Polys   = std::vector<Polygon>;
 
+enum class NFPCycleRole {
+    OuterBoundary,
+    HoleBoundary,
+    FeasiblePocket
+};
+
+struct NFPPoint {
+    double x;
+    double y;
+};
+
+struct NFPSegment {
+    NFPPoint a;
+    NFPPoint b;
+};
+
+struct NFPCycle {
+    NFPCycleRole role;
+    std::vector<NFPPoint> points;
+};
+
+struct NFPResult {
+    std::vector<NFPCycle> cycles;
+    std::vector<NFPSegment> slits;
+    std::vector<NFPPoint> isolated_points;
+};
+
 // Keep this frozen forever if the client must never touch NFP again:
 
-NFP_API Polys processNFP(const Polygon& polyA, const Polygon& polyB);
+NFP_API NFPResult processNFP(const Polygon& polyA, const Polygon& polyB);
 
 }

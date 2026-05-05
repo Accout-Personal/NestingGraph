@@ -119,10 +119,56 @@ static inline void buildNfpPatternsForPoly(
             v["y"] = v.at("y").get<double>() - py;
         }
 
+        vector<GeometryUtil::Polygon> holeVerts;
+        // --- also pivot-zeoring nfp holes
+        if (nfp.contains("NFP_HOLES") && ! nfp.at("NFP_HOLES").empty()) {
+            auto& holes = nfp.at("NFP_HOLES");
+            for (auto& hole : holes) {
+                for (auto& v : hole) {
+                    v["x"] = v.at("x").get<double>() - px;
+                    v["y"] = v.at("y").get<double>() - py;
+                }
+                holeVerts.emplace_back(GeometryUtil::parseVertices(hole));
+            }
+
+        }
+
+        // --- and pivot-zeoring nfp slits
+        vector<GeometryUtil::Polygon> slitsVerts;
+        if (nfp.contains("NFP_SLITS") && !nfp.at("NFP_SLITS").empty()) {
+            auto& slits = nfp.at("NFP_SLITS");
+            
+            for (auto& slit : slits) {
+                if (slit.size() == 1) { std::cout << " what? A slit with just 1 vertex?\n" << slit.dump(4) << std::endl; }
+                for (auto& v : slit) {
+                    std::cout << v.at("x").get<double>() << " " << v.at("y").get<double>() << std::endl;
+                    v["x"] = v.at("x").get<double>() - px;
+                    v["y"] = v.at("y").get<double>() - py;
+                    
+                }
+                slitsVerts.emplace_back(GeometryUtil::parseVertices(slit));
+            }
+        }
+
+        // --- and pivot-zeoring nfp points
+        vector<GeometryUtil::Point> pointsVert;
+        if (nfp.contains("NFP_POINTS") && !nfp.at("NFP_POINTS").empty()) {
+            auto& points = nfp.at("NFP_POINTS");
+            for (auto& v : points) {
+                v["x"] = v.at("x").get<double>() - px;
+                v["y"] = v.at("y").get<double>() - py;
+                pointsVert.emplace_back(GeometryUtil::Point{ v["x"], v["y"] });
+            }
+        }
+        
+        
+
         //Compute Bounding Box of NFP
         GeometryUtil::BBox nfpBBox = computeBoundingBox(verts);
 
         const auto polyVerts = GeometryUtil::parseVertices(verts);
+        
+        
 
         const int iStart = static_cast<int>(std::floor(nfpBBox.xMin / gx)) - 1;
         const int iEnd   = static_cast<int>(std::ceil (nfpBBox.xMax / gx)) + 3;
@@ -147,6 +193,36 @@ static inline void buildNfpPatternsForPoly(
                 const double ty = static_cast<double>(j) * gy;
 
                 if (GeometryUtil::pointInPolygon({tx, ty}, polyVerts) == 1) {
+                    bool inhole = false;
+                    for (auto& hole : holeVerts) {
+                        // 0: in hole, 1: not in hole -1:on edge(in hole)
+                        if (GeometryUtil::pointInPolygon({ tx, ty }, hole) != 1) {
+                            inhole = true;
+                            break;
+                        }
+                    }
+                    if (inhole) continue;
+
+                    bool onSlit = false;
+                    for (auto& slit : slitsVerts) {
+                        // 0: in hole, 1: not in hole -1:on edge(in hole)
+                        if (GeometryUtil::pointInSegment({ tx, ty }, slit)) {
+                            onSlit = true;
+                            break;
+                        }
+                    }
+                    if (onSlit) continue;
+
+                    bool onPoint = false;
+                    for (auto& p : pointsVert) {
+                        // 0: in hole, 1: not in hole -1:on edge(in hole)
+                        if (GeometryUtil::Point{ tx, ty } == p) {
+                            onPoint = true;
+                            break;
+                        }
+                    }
+                    if (onPoint) continue;
+
                     pattern.push_back({static_cast<int16_t>(i), static_cast<int16_t>(j)});
                     pattern_pos.push_back({tx, ty});
                 }

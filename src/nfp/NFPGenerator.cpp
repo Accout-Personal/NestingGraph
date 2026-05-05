@@ -199,10 +199,15 @@ typedef int ShapeID; // Simple alias for shape identifiers
         return U_Open;
      }
      
+    struct ExactNefPoint {
+        CGAL::Gmpz hx;
+        CGAL::Gmpz hy;
+        CGAL::Gmpz hw;
+    };
 
     struct NFPPointCell {
         bool marked;
-        std::pair<double, double> p;
+        ExactNefPoint p;
     };
 
     struct NFPEdgeCell {
@@ -214,8 +219,8 @@ typedef int ShapeID; // Simple alias for shape identifiers
         bool left_face_unbounded;
         bool right_face_unbounded;
 
-        std::pair<double, double> a;
-        std::pair<double, double> b;
+        ExactNefPoint a;
+        ExactNefPoint b;
     };
 
     struct NFPFaceCycle {
@@ -223,7 +228,7 @@ typedef int ShapeID; // Simple alias for shape identifiers
         bool is_hole;
         bool unbounded;
 
-        std::vector<std::pair<double, double>> points;
+        std::vector<ExactNefPoint> points;
     };
 
     struct NFPTopology {
@@ -232,6 +237,135 @@ typedef int ShapeID; // Simple alias for shape identifiers
         std::vector<NFPEdgeCell> edges;
         std::vector<NFPPointCell> points;
     };
+
+    struct DirectedBoundaryEdge {
+        ExactNefPoint a;
+        ExactNefPoint b;
+
+        std::string a_key;
+        std::string b_key;
+
+        bool used = false;
+    };
+
+    struct NFPSlitCandidate {
+        ExactNefPoint a;
+        ExactNefPoint b;
+    };
+
+    struct NFPPointCandidate {
+        ExactNefPoint p;
+    };
+
+    struct BuiltNFP {
+        std::vector<std::vector<ExactNefPoint>> boundary_cycles;
+        std::vector<std::vector<ExactNefPoint>> feasible_pocket_cycles;
+        std::vector<NFPSlitCandidate> slit_candidates;
+        std::vector<NFPPointCandidate> point_candidates;
+    };
+
+    static CGAL::Gmpz abs_gmpz(CGAL::Gmpz v) {
+        return v < CGAL::Gmpz(0) ? -v : v;
+    }
+
+    static CGAL::Gmpz gcd_gmpz(CGAL::Gmpz a, CGAL::Gmpz b) {
+        a = abs_gmpz(a);
+        b = abs_gmpz(b);
+
+        while (b != CGAL::Gmpz(0)) {
+            CGAL::Gmpz r = a % b;
+            a = b;
+            b = r;
+        }
+
+        return a;
+    }
+
+    static CGAL::Gmpz gcd3_gmpz(
+        const CGAL::Gmpz& a,
+        const CGAL::Gmpz& b,
+        const CGAL::Gmpz& c
+    ) {
+        return gcd_gmpz(gcd_gmpz(a, b), c);
+    }
+
+    static ExactNefPoint normalize_exact_point(ExactNefPoint p) {
+        if (p.hw < CGAL::Gmpz(0)) {
+            p.hx = -p.hx;
+            p.hy = -p.hy;
+            p.hw = -p.hw;
+        }
+
+        CGAL::Gmpz g = gcd3_gmpz(p.hx, p.hy, p.hw);
+
+        if (g != CGAL::Gmpz(0) && g != CGAL::Gmpz(1)) {
+            p.hx /= g;
+            p.hy /= g;
+            p.hw /= g;
+        }
+
+        return p;
+    }
+
+    template <typename NefPoint>
+    static ExactNefPoint nef_point_to_exact(const NefPoint& pt) {
+        ExactNefPoint p;
+        p.hx = pt.hx();
+        p.hy = pt.hy();
+        p.hw = pt.hw();
+
+        return normalize_exact_point(p);
+    }
+
+    static bool same_exact_point(
+        const ExactNefPoint& a,
+        const ExactNefPoint& b
+    ) {
+        return a.hx == b.hx &&
+            a.hy == b.hy &&
+            a.hw == b.hw;
+    }
+
+    static std::string exact_point_key(const ExactNefPoint& p) {
+        std::ostringstream oss;
+        oss << p.hx << "/" << p.hw
+            << ","
+            << p.hy << "/" << p.hw;
+
+        return oss.str();
+    }
+
+    static std::string directed_edge_key_exact(
+        const ExactNefPoint& a,
+        const ExactNefPoint& b
+    ) {
+        return exact_point_key(a) + "->" + exact_point_key(b);
+    }
+
+    static std::string undirected_edge_key_exact(
+        const ExactNefPoint& a,
+        const ExactNefPoint& b
+    ) {
+        std::string ka = exact_point_key(a);
+        std::string kb = exact_point_key(b);
+
+        if (ka < kb) {
+            return ka + "--" + kb;
+        }
+
+        return kb + "--" + ka;
+    }
+
+    static std::pair<double, double> exact_point_to_double(
+        const ExactNefPoint& p
+    ) {
+        double hw = CGAL::to_double(p.hw);
+
+        return {
+            CGAL::to_double(p.hx) / hw,
+            CGAL::to_double(p.hy) / hw
+        };
+    }
 
     template <typename NefPoint>
     static std::pair<double, double> nef_point_to_double_pair(
@@ -268,7 +402,7 @@ typedef int ShapeID; // Simple alias for shape identifiers
 
             if (explorer.is_standard(vh)) {
                 auto pt = explorer.point(vh);
-                cycle.points.push_back(nef_point_to_double_pair(pt));
+                cycle.points.push_back(nef_point_to_exact(pt));
             }
 
             ++circ;
@@ -378,8 +512,8 @@ typedef int ShapeID; // Simple alias for shape identifiers
             e.right_face_unbounded =
                 (right_fc == Nef_polyhedron::Explorer::Halfedge_const_handle());
 
-            e.a = nef_point_to_double_pair(explorer.point(s));
-            e.b = nef_point_to_double_pair(explorer.point(t));
+            e.a = nef_point_to_exact(explorer.point(s));
+            e.b = nef_point_to_exact(explorer.point(t));
 
             out.edges.push_back(std::move(e));
         }
@@ -399,12 +533,83 @@ typedef int ShapeID; // Simple alias for shape identifiers
 
             NFPPointCell p;
             p.marked = explorer.mark(vit);
-            p.p = nef_point_to_double_pair(explorer.point(vit));
+            p.p = nef_point_to_exact(explorer.point(vit));
 
             out.points.push_back(std::move(p));
         }
 
         return out;
+    }
+
+    static NFPPoint to_public_point(const ExactNefPoint& p) {
+        auto d = exact_point_to_double(p);
+        return { d.first, d.second };
+    }
+
+    static NFPSegment to_public_segment(const NFPSlitCandidate& s) {
+        return {
+            to_public_point(s.a),
+            to_public_point(s.b)
+        };
+    }
+
+    static double signed_area_of_exact_cycle(
+        const std::vector<ExactNefPoint>& cycle
+    ) {
+        double area = 0.0;
+
+        for (size_t i = 0; i < cycle.size(); ++i) {
+            auto p = exact_point_to_double(cycle[i]);
+            auto q = exact_point_to_double(cycle[(i + 1) % cycle.size()]);
+
+            area += p.first * q.second - q.first * p.second;
+        }
+
+        return 0.5 * area;
+    }
+
+    static NFPCycleRole classify_boundary_cycle_role(
+        const std::vector<ExactNefPoint>& cycle
+    ) {
+        return signed_area_of_exact_cycle(cycle) >= 0.0
+            ? NFPCycleRole::OuterBoundary
+            : NFPCycleRole::HoleBoundary;
+    }
+
+    static NFPResult make_public_result(const BuiltNFP& built) {
+        NFPResult result;
+
+        for (const auto& cycle : built.boundary_cycles) {
+            NFPCycle out_cycle;
+            out_cycle.role = classify_boundary_cycle_role(cycle);
+            if (out_cycle.role == NFPCycleRole::OuterBoundary) {
+                for (const auto& p : cycle) {
+                    out_cycle.points.push_back(to_public_point(p));
+                }
+                result.cycles.push_back(std::move(out_cycle));
+            }
+        }
+
+        for (const auto& pocket : built.feasible_pocket_cycles) {
+            NFPCycle out_pocket;
+            out_pocket.role = NFPCycleRole::FeasiblePocket;
+
+            for (const auto& p : pocket) {
+                out_pocket.points.push_back(to_public_point(p));
+            }
+
+            result.cycles.push_back(std::move(out_pocket));
+        }
+
+        for (const auto& slit : built.slit_candidates) {
+            result.slits.push_back(to_public_segment(slit));
+        }
+
+        for (const auto& p : built.point_candidates) {
+            result.isolated_points.push_back(to_public_point(p.p));
+        }
+
+        return result;
     }
 
     static void print_nfp_topology_summary(const NFPTopology& topo) {
@@ -438,55 +643,32 @@ typedef int ShapeID; // Simple alias for shape identifiers
             const auto& e = topo.edges[i];
 
             bool mark_transition = (e.left_face_marked != e.right_face_marked);
-
+            auto a = exact_point_to_double(e.a);
+            auto b = exact_point_to_double(e.b);
             std::cout << "  Edge " << i
                       << " edge_marked=" << e.edge_marked
                       << " left_face_marked=" << e.left_face_marked
                       << " right_face_marked=" << e.right_face_marked
                       << " transition=" << mark_transition
-                      << " a=(" << e.a.first << ", " << e.a.second << ")"
-                      << " b=(" << e.b.first << ", " << e.b.second << ")"
+                      << " a=(" << a.first << ", " << a.second << ")"
+                      << " b=(" << b.first << ", " << b.second << ")"
                       << "\n";
         }
 
         std::cout << "Vertices: " << topo.points.size() << "\n";
         for (size_t i = 0; i < topo.points.size(); ++i) {
             const auto& p = topo.points[i];
-
+            const auto& p1 = exact_point_to_double(p.p);
             std::cout << "  Vertex " << i
                       << " marked=" << p.marked
-                      << " p=(" << p.p.first << ", " << p.p.second << ")"
+                      << " p=(" << p1.first << ", " << p1.second << ")"
                       << "\n";
         }
 
         std::cout << "============================================================\n\n";
     }
 
-    struct DirectedBoundaryEdge {
-        std::pair<double, double> a;
-        std::pair<double, double> b;
-
-        std::string a_key;
-        std::string b_key;
-
-        bool used = false;
-    };
-
-    struct NFPSlitCandidate {
-        std::pair<double, double> a;
-        std::pair<double, double> b;
-    };
-
-    struct NFPPointCandidate {
-        std::pair<double, double> p;
-    };
-
-    struct BuiltNFP {
-        std::vector<std::vector<std::pair<double, double>>> boundary_cycles;
-        std::vector<std::vector<std::pair<double, double>>> feasible_pocket_cycles;
-        std::vector<NFPSlitCandidate> slit_candidates;
-        std::vector<NFPPointCandidate> point_candidates;
-    };
+ 
 
     static std::string point_key(const std::pair<double, double>& p) {
         std::ostringstream oss;
@@ -539,37 +721,24 @@ typedef int ShapeID; // Simple alias for shape identifiers
         return kb + "--" + ka;
     }
 
-    static std::vector<std::vector<std::pair<double, double>>>
-    stitch_boundary_cycles_from_edges(const NFPTopology& topo) {
-        std::set<std::string> seen_edges;
+    static std::vector<std::vector<ExactNefPoint>>
+        stitch_boundary_cycles_from_edges(const NFPTopology& topo) {
         std::vector<DirectedBoundaryEdge> edges;
+        std::set<std::string> seen_edges;
 
         edges.reserve(topo.edges.size());
 
         for (const auto& e : topo.edges) {
-            // Ignore edges touching unbounded exterior if you only want finite NFP cycles.
-            // You can relax this later if needed.
             if (e.left_face_unbounded || e.right_face_unbounded) {
                 continue;
             }
 
-            // Boundary between forbidden and non-forbidden regions.
             if (e.left_face_marked == e.right_face_marked) {
                 continue;
             }
 
             DirectedBoundaryEdge de;
 
-            // Use orientation where the forbidden/marked region is on the left.
-            //
-            // Because explorer.face(e) is the left face of halfedge e:
-            //
-            //   left marked, right unmarked:
-            //       keep a -> b
-            //
-            //   left unmarked, right marked:
-            //       reverse b -> a
-            //
             if (e.left_face_marked && !e.right_face_marked) {
                 de.a = e.a;
                 de.b = e.b;
@@ -579,19 +748,14 @@ typedef int ShapeID; // Simple alias for shape identifiers
                 de.b = e.a;
             }
 
-            if (same_point_double(de.a, de.b)) {
+            if (same_exact_point(de.a, de.b)) {
                 continue;
             }
 
-            // Skip zero-length junk.
-            if (dist2(de.a, de.b) < 1e-24) {
-                continue;
-            }
+            de.a_key = exact_point_key(de.a);
+            de.b_key = exact_point_key(de.b);
 
-            de.a_key = point_key_double(de.a);
-            de.b_key = point_key_double(de.b);
-
-            std::string ekey = directed_edge_key_double(de.a, de.b);
+            std::string ekey = directed_edge_key_exact(de.a, de.b);
 
             if (seen_edges.count(ekey)) {
                 continue;
@@ -599,31 +763,26 @@ typedef int ShapeID; // Simple alias for shape identifiers
 
             seen_edges.insert(ekey);
 
-            de.a_key = point_key(de.a);
-            de.b_key = point_key(de.b);
-
             edges.push_back(std::move(de));
         }
 
-        // Map start vertex -> outgoing edge indices.
         std::map<std::string, std::vector<size_t>> outgoing;
 
         for (size_t i = 0; i < edges.size(); ++i) {
             outgoing[edges[i].a_key].push_back(i);
         }
 
-        std::vector<std::vector<std::pair<double, double>>> cycles;
+        std::vector<std::vector<ExactNefPoint>> cycles;
 
         for (size_t i = 0; i < edges.size(); ++i) {
             if (edges[i].used) {
                 continue;
             }
 
-            std::vector<std::pair<double, double>> cycle;
+            std::vector<ExactNefPoint> cycle;
 
             size_t current = i;
             std::string start_key = edges[current].a_key;
-            std::string current_key = start_key;
 
             while (true) {
                 if (edges[current].used) {
@@ -637,13 +796,12 @@ typedef int ShapeID; // Simple alias for shape identifiers
                 std::string next_key = edges[current].b_key;
 
                 if (next_key == start_key) {
-                    // Closed cycle.
                     break;
                 }
 
                 auto found = outgoing.find(next_key);
+
                 if (found == outgoing.end()) {
-                    // Open chain. This may happen for degenerate/slit cases.
                     cycle.push_back(edges[current].b);
                     break;
                 }
@@ -659,12 +817,9 @@ typedef int ShapeID; // Simple alias for shape identifiers
                 }
 
                 if (!advanced) {
-                    // No unused continuation.
                     cycle.push_back(edges[current].b);
                     break;
                 }
-
-                current_key = next_key;
             }
 
             if (cycle.size() >= 2) {
@@ -675,9 +830,10 @@ typedef int ShapeID; // Simple alias for shape identifiers
         return cycles;
     }
 
-    static std::vector<std::vector<std::pair<double, double>>>
+
+    static std::vector<std::vector<ExactNefPoint>>
     extract_feasible_pocket_cycles(const NFPTopology& topo) {
-        std::vector<std::vector<std::pair<double, double>>> pockets;
+        std::vector<std::vector<ExactNefPoint>> pockets;
 
         for (const auto& c : topo.face_cycles) {
             if (c.unbounded) {
@@ -708,7 +864,7 @@ typedef int ShapeID; // Simple alias for shape identifiers
                 continue;
             }
 
-            if (dist2(e.a, e.b) < 1e-24) {
+            if (same_exact_point(e.a, e.b)) {
                 continue;
             }
 
@@ -719,7 +875,7 @@ typedef int ShapeID; // Simple alias for shape identifiers
                 !e.edge_marked;
 
             if (embedded_in_forbidden_area && edge_itself_available) {
-                std::string key = undirected_edge_key_double(e.a, e.b);
+                std::string key = undirected_edge_key_exact(e.a, e.b);
 
                 if (seen_slits.count(key)) {
                     continue;
@@ -730,6 +886,7 @@ typedef int ShapeID; // Simple alias for shape identifiers
                 NFPSlitCandidate s;
                 s.a = e.a;
                 s.b = e.b;
+
                 slits.push_back(std::move(s));
             }
         }
@@ -740,22 +897,22 @@ typedef int ShapeID; // Simple alias for shape identifiers
     static std::vector<NFPPointCandidate>
         extract_point_candidates(
             const NFPTopology& topo,
-            const std::vector<std::vector<std::pair<double, double>>>& boundary_cycles,
+            const std::vector<std::vector<ExactNefPoint>>& boundary_cycles,
             const std::vector<NFPSlitCandidate>& slit_candidates
         ) {
         std::set<std::string> boundary_vertices;
 
         for (const auto& cycle : boundary_cycles) {
             for (const auto& p : cycle) {
-                boundary_vertices.insert(point_key_double(p));
+                boundary_vertices.insert(exact_point_key(p));
             }
         }
 
         std::set<std::string> slit_vertices;
 
         for (const auto& s : slit_candidates) {
-            slit_vertices.insert(point_key_double(s.a));
-            slit_vertices.insert(point_key_double(s.b));
+            slit_vertices.insert(exact_point_key(s.a));
+            slit_vertices.insert(exact_point_key(s.b));
         }
 
         std::vector<NFPPointCandidate> points;
@@ -765,7 +922,7 @@ typedef int ShapeID; // Simple alias for shape identifiers
                 continue;
             }
 
-            std::string key = point_key_double(p.p);
+            std::string key = exact_point_key(p.p);
 
             if (boundary_vertices.count(key)) {
                 continue;
@@ -777,6 +934,7 @@ typedef int ShapeID; // Simple alias for shape identifiers
 
             NFPPointCandidate q;
             q.p = p.p;
+
             points.push_back(std::move(q));
         }
 
@@ -824,28 +982,27 @@ typedef int ShapeID; // Simple alias for shape identifiers
         std::cout << "Slit candidates: " << built.slit_candidates.size() << "\n";
         for (size_t i = 0; i < built.slit_candidates.size(); ++i) {
             const auto& s = built.slit_candidates[i];
-
+            const auto sa = exact_point_to_double(s.a);
+            const auto sb = exact_point_to_double(s.b);
             std::cout << "  Slit " << i
-                      << " a=(" << s.a.first << ", " << s.a.second << ")"
-                      << " b=(" << s.b.first << ", " << s.b.second << ")"
+                      << " a=(" << sa.first << ", " << sa.second << ")"
+                      << " b=(" << sb.first << ", " << sb.second << ")"
                       << "\n";
         }
 
         std::cout << "Point candidates: " << built.point_candidates.size() << "\n";
         for (size_t i = 0; i < built.point_candidates.size(); ++i) {
             const auto& p = built.point_candidates[i];
-
+            const auto pp = exact_point_to_double(p.p);
             std::cout << "  Point " << i
-                      << " p=(" << p.p.first << ", " << p.p.second << ")"
+                      << " p=(" << pp.first << ", " << pp.second << ")"
                       << "\n";
         }
 
         std::cout << "============================================================\n\n";
     }
 
-
-
-    std::vector<std::vector<std::pair<double,double>>>  processNFP(
+    NFPResult processNFP(
             const std::vector<std::pair<double,double>>& polyA, 
             const std::vector<std::pair<double,double>>& polyB) {
         
@@ -898,16 +1055,17 @@ typedef int ShapeID; // Simple alias for shape identifiers
 
         NFPTopology topo = extract_nfp_topology(nfp);
 
-        print_nfp_topology_summary(topo);
+        //print_nfp_topology_summary(topo);
 
         BuiltNFP built = build_nfp_from_topology(topo);
 
-        print_built_nfp_summary(built);
+        //print_built_nfp_summary(built);
 
         // Current compatibility return:
         // Return boundary cycles first, then positive-area feasible pockets.
         // Slits and points are printed but not returned because your current return
         // type cannot represent them.
+        /*
         std::vector<std::vector<std::pair<double,double>>> nfp_polygons;
 
         for (const auto& c : built.boundary_cycles) {
@@ -915,6 +1073,7 @@ typedef int ShapeID; // Simple alias for shape identifiers
                 nfp_polygons.push_back(c);
             }
         }
+        */
 
         /*
         for (const auto& p : built.feasible_pocket_cycles) {
@@ -924,7 +1083,7 @@ typedef int ShapeID; // Simple alias for shape identifiers
         }
         */
 
-        return nfp_polygons;
+        return make_public_result(built);
 
 
         /*

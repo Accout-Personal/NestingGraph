@@ -29,6 +29,7 @@ namespace GeometryUtil {
     // Public helpers you use elsewhere:
     double polygonArea(const Polygon& polygon);
     int pointInPolygon(const Point& point, const Polygon& polygon);
+    bool pointInSegment(const Point& point, const Polygon& slit);
     BBox computeBoundingBox(const Polygon& poly);
     
     struct Bounds {
