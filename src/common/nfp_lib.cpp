@@ -41,12 +41,12 @@ json processNFP(json &dataset,double height, double width){
             polyKeys.push_back(key);
         }
     }
+
     // Replace original dataset with the copy that has polygon entries replaced with numbers.
     json datasetCopy;
     unsigned int total_polygon = 0;
-    for (auto& key : polyKeys) {
+    for (const auto& key : polyKeys) {
         datasetCopy[std::to_string(total_polygon)] = dataset[key];
-        key = std::to_string(total_polygon);
         total_polygon++;
     }
 
