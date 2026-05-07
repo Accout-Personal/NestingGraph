@@ -141,7 +141,7 @@ static inline void buildNfpPatternsForPoly(
             for (auto& slit : slits) {
                 if (slit.size() == 1) { std::cout << " what? A slit with just 1 vertex?\n" << slit.dump(4) << std::endl; }
                 for (auto& v : slit) {
-                    std::cout << v.at("x").get<double>() << " " << v.at("y").get<double>() << std::endl;
+                    //std::cout << v.at("x").get<double>() << " " << v.at("y").get<double>() << std::endl;
                     v["x"] = v.at("x").get<double>() - px;
                     v["y"] = v.at("y").get<double>() - py;
                     
@@ -1124,7 +1124,6 @@ int main(int argc, char** argv) {
         cout << "Generating NFP..\n";
         json polygons;
         try {
-            std::cout << "Processing NFP..\n";
             polygons = NFPTool::processNFP(dataset, length, width);
         } catch (const exception& e) {
             cerr << "Error during NFP processing: " << e.what() << "\n";

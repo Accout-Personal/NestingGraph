@@ -8,7 +8,7 @@ if "%ROOT:~-1%"=="\" set "ROOT=%ROOT:~0,-1%"
 
 set "EXE=%ROOT%\build-static\Release\nesting_graph.exe"
 set "DATASETS=%ROOT%\Inputs\dataset"
-set "INSTANCES=%ROOT%\Inputs\problematic\artif.txt"
+set "INSTANCES=%ROOT%\Inputs\problematic\redo.txt"
 
 REM Existence checks
 if not exist "%EXE%" (
@@ -32,7 +32,7 @@ echo   --CliqueCovering 1
 echo.
 
 REM Run (merge stderr into stdout)
-"%EXE%" --datasets "%DATASETS%" --instances "%INSTANCES%" --typeOriented 0 --cliqueCovering 1 2>&1
+"%EXE%" --datasets "%DATASETS%" --instances "%INSTANCES%" --typeOriented 0 --cliqueCovering 1 --apply_cuts 1 2>&1
 
 set "CODE=%ERRORLEVEL%"
 echo.

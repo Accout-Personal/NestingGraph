@@ -32,7 +32,7 @@ echo   --CliqueCovering 1
 echo.
 
 REM Run (merge stderr into stdout)
-"%EXE%" --datasets "%DATASETS%" --instances "%INSTANCES%" --typeOriented 1 --cliqueCovering 1 2>&1
+"%EXE%" --datasets "%DATASETS%" --instances "%INSTANCES%" --typeOriented 0 --cliqueCovering 1 2>&1
 
 set "CODE=%ERRORLEVEL%"
 echo.

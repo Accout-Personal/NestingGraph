@@ -1,0 +1,16 @@
+[
+        {
+            "dataset":"shapes.json",
+            "outputName":"shapes15",
+            "quantity":
+                {
+                    "PIECE 1":15,
+                    "PIECE 2":7,
+                    "PIECE 3":9,
+                    "PIECE 4":12
+                },
+            "width":40,
+            "length":67,
+            "cuts":[63,64]            
+        }
+    ]

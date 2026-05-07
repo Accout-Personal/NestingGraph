@@ -143,7 +143,7 @@ json processNFP(json &dataset,double height, double width){
                 
 
                 for (auto slit: outNfps.slits){
-                    std::cout << "slits detected: x1:" << slit.a.x << " y1:" << slit.a.y << " x2:" << slit.b.x << " y2:" << slit.b.y << std::endl;
+                    //std::cout << "slits detected: x1:" << slit.a.x << " y1:" << slit.a.y << " x2:" << slit.b.x << " y2:" << slit.b.y << std::endl;
                     json JoutSlits = json::array();
                     JoutSlits.push_back({ {"x",slit.a.x},{"y",slit.a.y} });
                     JoutSlits.push_back({ {"x",slit.b.x},{"y",slit.b.y} });
@@ -152,11 +152,11 @@ json processNFP(json &dataset,double height, double width){
 
                 json JoutPoint = json::array();
                 for (auto point: outNfps.isolated_points){
-                    JoutPoint.push_back({{"x",point.x},{"y",point.y}});
+                    JoutPoint.push_back({ {"x",point.x},{"y",point.y} });
                 }
                 
                 if (! JoutPoint.empty()){
-                    nfpEntry["NFP_POINTS"].push_back(JoutPoint);
+                    nfpEntry["NFP_POINTS"] = JoutPoint;
                 }                
                 
             } else {
