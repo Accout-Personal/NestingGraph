@@ -45,15 +45,18 @@ json processNFP(json &dataset,double height, double width){
     // Replace original dataset with the copy that has polygon entries replaced with numbers.
     json datasetCopy;
     unsigned int total_polygon = 0;
+    std::vector<std::string> polyKeysNew;
+    polyKeysNew.reserve(dataset.size());
     for (const auto& key : polyKeys) {
         datasetCopy[std::to_string(total_polygon)] = dataset[key];
+        polyKeysNew.push_back(std::to_string(total_polygon));
         total_polygon++;
     }
 
     dataset = datasetCopy; 
-
+    
     // Main loop: for each fixed polygon
-    for (const auto& fixedKey : polyKeys) {
+    for (const auto& fixedKey : polyKeysNew) {
         auto& fixedObj = dataset[fixedKey];
 
         GeometryUtil::Polygon fixedPoly = GeometryUtil::parseVertices(fixedObj["VERTICES"]);
@@ -65,7 +68,6 @@ json processNFP(json &dataset,double height, double width){
         }
 
         // ---- Inner-fit for rectangle ----
-        //TODO:implement bounding box innerfit polygon
         GeometryUtil::BBox polyBBox = GeometryUtil::computeBoundingBox(fixedPoly);
 
         //Consider first point of the polygon as pivot.
@@ -84,7 +86,7 @@ json processNFP(json &dataset,double height, double width){
         // ---- Outer NFPs against all polygons ----
         fixedObj["NO-FIT"] = json::array();
 
-        for (const auto& rotKey : polyKeys) {
+        for (const auto& rotKey : polyKeysNew) {
             auto& rotObj = dataset[rotKey];
 
             GeometryUtil::Polygon rotPoly = GeometryUtil::parseVertices(rotObj["VERTICES"]);

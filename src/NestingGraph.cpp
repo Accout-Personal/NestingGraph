@@ -1141,7 +1141,6 @@ int main(int argc, char** argv) {
         polygons.erase("STRIP"); 
         size_t num_polygon = polygons.size();
         //quantity can either be a single unsigned int for all polygons or a dictionary of per-polygon quantities
-
         int total_polygon = 0;
         double total_area = 0.0;
         for (auto& [key, val] : polygons.items()){
