@@ -938,11 +938,11 @@ int main(int argc, char** argv) {
             cerr << "Error: dataset path is not a valid folder directory: " << datasetPath << "\n";
             return 1;
         }
-        for (const auto& entry : fs::directory_iterator(datasetPath)){
+        for (const auto& entry : fs::recursive_directory_iterator(datasetPath)){
             if (entry.path().extension() == ".json"){
                 string datasetJsonPath = entry.path().string();
                 string datasetName = entry.path().stem().string();
-                
+
                 if (datasetPathMap.find(datasetName) != datasetPathMap.end()){
                     cerr << "Error: Duplicate dataset name found: " << datasetName << " at " 
                          << datasetJsonPath << "\n" 
@@ -950,7 +950,7 @@ int main(int argc, char** argv) {
                     return 1;
                 }
                 datasetPathMap[datasetName] = datasetJsonPath;
-                datasetPathMap[entry.path().filename().string()] = datasetJsonPath;
+                datasetPathMap[std::filesystem::relative(entry, datasetPath).string()] = datasetJsonPath;
             }
         }
     }
