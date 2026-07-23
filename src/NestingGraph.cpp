@@ -663,7 +663,7 @@ std::vector<double> split_by_token(const std::string& s, const std::string& toke
 }
 
 std::vector<double> sanitizeCuts(std::vector<double> cuts,double boardLength){
-    sort(cuts.begin(),cuts.end());
+    std::sort(cuts.begin(),cuts.end(), std::greater());
     vector<double> cutsSanitized;
     for(auto cut:cuts){
         if (cut<0){
@@ -687,26 +687,23 @@ unsigned int computeTotalVertices(vector<LayerPoints> layerOfPoint){
     return totalVertice;
 }
 
-
-vector<uint32_t> GetRemoveNodeList(vector<LayerPoints> layerOfPoint, double cut,double boardLength){
-
-    //Truncates the cut and length since we're operating on the dotted board.
-        
-    int globalOffset = int(boardLength)-int(cut);
+static vector<uint32_t> GetRemoveNodeList(const vector<LayerPoints>& layerOfPoint, const int cut, const int boardLength) {
+    // Truncates the cut and length since we're operating on the dotted board.
+    const int globalOffset = boardLength- cut;
     vector<uint32_t> removeNodes;
-    for (auto layer:layerOfPoint){
-        int endIndex = layer.Ymap[0].size()-globalOffset;
-        endIndex = endIndex>=0 ? endIndex : 0;
-        for (auto xarr:layer.Ymap){
-            
-            for (int i = xarr.size()-1 ;i>=endIndex;i--){
+
+    for (auto layer:layerOfPoint) {
+        int endIndex = layer.Ymap[0].size() - globalOffset;
+        endIndex = std::max(endIndex, 0);
+
+        for (auto xarr:layer.Ymap) {
+            for (int i = xarr.size()-1; i >= endIndex; i--) {
                 removeNodes.push_back(xarr[i]);
             }
         }
     }
 
     return removeNodes;
-
 }
 
 pair <vector<uint32_t>,vector<bool>> MakeMap(vector<uint32_t>  removeNodes,uint32_t totalVertice){
@@ -1021,9 +1018,9 @@ int main(int argc, char** argv) {
             if (set.contains("cuts")){
                 set["lengthOriginal"] = set["length"].get<double>();
                 set["cuts"] = sanitizeCuts(set["cuts"].get<vector<double>>(),set["length"].get<double>());
-                set["length"] = set["cuts"].back();
                 if (set["cuts"].is_array() && !set["cuts"].empty()) {
-                    set["cuts"].erase(std::prev(set["cuts"].end()));  // remove last elemen
+                    set["length"] = set["cuts"][0];
+                    set["cuts"].erase(set["cuts"].begin());  // remove first elemen (biggest cut)
                 }
             }
         }
@@ -1053,13 +1050,13 @@ int main(int argc, char** argv) {
         string outputDataset = outputdir + outputname;
         if(singleInstace){outputDataset = outputdir;}
 
-        if (enable_cut && set.contains("cuts") && set["cuts"].size()>0){
-            if(!set.contains("cuts") || set["cuts"].size()==0) {
+        if (enable_cut && set.contains("cuts") && !set["cuts"].empty()){
+            if(!set.contains("cuts") || set["cuts"].empty()) {
                 cout << "WARNING: dataset: "<< outputname << " doesnt have cuts field, skipped.\n";
                 continue;
             }
 
-            outputDataset += "\\cut_"+to_string_fixed(length,1)+"\\";
+            outputDataset += "/cut_"+to_string_fixed(length,1)+"/";
         }
         
         
@@ -1311,10 +1308,10 @@ int main(int argc, char** argv) {
         cout << "saving result..\n";
         if(enable_cut){
             if(singleInstace){
-                outputDataset = outputdir + "\\cut_" + to_string_fixed(length,1);
+                outputDataset = outputdir + "/cut_" + to_string_fixed(length,1);
             }
             else{
-                outputDataset = outputdir + "/" + outputname + "\\cut_" + to_string_fixed(length,1);
+                outputDataset = outputdir + "/" + outputname + "/cut_" + to_string_fixed(length,1);
             }
             
         } 
@@ -1424,13 +1421,13 @@ int main(int argc, char** argv) {
         
         //vector<uint32_t> cutMap;
         //vector<bool>Mask;
-        for (auto cut:set["cuts"]){
+        for (const auto& cut:set["cuts"]){
 
             if(singleInstace){
-                outputDataset = outputdir + "\\cut_"+to_string(cut)+"\\";
+                outputDataset = outputdir + "/cut_"+to_string(cut)+"/";
             }
             else{
-                outputDataset = outputdir + "/" + outputname + "\\cut_"+to_string(cut)+"\\";
+                outputDataset = outputdir + "/" + outputname + "/cut_"+to_string(cut)+"/";
             }
             
             fs::create_directories(outputDataset);
@@ -1476,20 +1473,20 @@ int main(int argc, char** argv) {
                 pointsOut << lp.layer << "," << lp.x << "," << lp.y << "," << lp.id << "\n";
             }
             cout << "removing nodes in cut \n";
+
             graph.removeNodes(removeList);
             
             uint32_t NumberEdges = graph.getNumEdges();
-            uint32_t NumberVertices = graph.getNumVertices();
+            uint32_t NumberVerticesCut = graph.getNumVertices();
             
-            density = (2.0*NumberEdges)/(NumberVertices*NumberVertices-1);
+            density = (2.0*NumberEdges)/(NumberVerticesCut*NumberVerticesCut-1);
             cout << "Graph statistics:\n";
             cout << "  Dataset name:     " << outputname << "\n";
-            cout << "  Number of vertices: " << NumberVertices << "\n";
+            cout << "  Number of vertices: " << NumberVerticesCut << "\n";
             cout << "  Number of clique edges:   " << cliqueEdges << "\n";
             cout << "  Number of edges:    " << NumberEdges << "\n";
             cout << "  Density:            " << density << "\n";
 
-            
             if (cliqueCovering){
                 const string cliqueOutputdir = outputDataset + "/"+outputname+"_ECC_"+to_string(cut)+".txt";
                 auto cliqueCount = max1MinEKCover.countRowMap(cutMap);
@@ -1502,7 +1499,7 @@ int main(int argc, char** argv) {
                 //# number of cliques in the edge-clique cover (# of lines below): |C| = …
                 std::ofstream out(cliqueOutputdir, std::ios::out | std::ios::trunc);
                 
-                out <<"# G_z number of vertices: |V| = " << NumberVertices << endl;
+                out <<"# G_z number of vertices: |V| = " << NumberVerticesCut << endl;
                 out <<"# G_z number of edges: |E| = " << NumberEdges << endl;
                 out <<"# number of cliques in the edge-clique cover (# of lines below): |C| = " << TotalCliqueCount << endl;
                 out <<"# strip height z = " << cut << endl;
@@ -1531,7 +1528,7 @@ int main(int argc, char** argv) {
 
                 const string graphOutputPath = outputDataset + "/"+outputname+"_graph_"+to_string(length)+".txt";
                 std::ofstream out(graphOutputPath, std::ios::out | std::ios::trunc);
-                out <<"# G_z number of vertices: |V| = " << NumberVertices << endl;
+                out <<"# G_z number of vertices: |V| = " << NumberVerticesCut << endl;
                 out <<"# G_z number of edges: |E| = " << NumberEdges << endl;
                 out <<"# number of polygons: |P| = " << layerCliques.size() << endl;
                 out <<"# strip length z = " << cut << endl;
