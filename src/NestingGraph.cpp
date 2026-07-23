@@ -20,7 +20,7 @@ using namespace std;
 
 namespace fs = std::filesystem;
 
-bool REMOVE_OLD_FOLDER = true;
+bool REMOVE_OLD_FOLDER = false;
 bool CLIQUE_COVERING_ADD_LAYER_CLIQUE = true;
 bool OUTPUT_ADD_LAYER_CLIQUE = true;
 bool OUT_OLD_METADATA = false;
