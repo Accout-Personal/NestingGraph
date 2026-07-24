@@ -612,6 +612,7 @@ static bool parse_bool(const char* s) {
     string v(s);
     if (v == "1" || v == "true" || v == "TRUE" || v == "True") return true;
     if (v == "0" || v == "false" || v == "FALSE" || v == "False") return false;
+    std::cout << "Invalid Argument: Expected boolean(0 / 1 / true / false), got: " + v << std::endl;
     throw std::invalid_argument("Expected boolean (0/1/true/false), got: " + v);
 }
 
@@ -826,7 +827,8 @@ int main(int argc, char** argv) {
                "--length <number>[optional, mandatory if dataset doenst contain it]  ignored if specified in json\n"
                "--format <graph|lp|all> [optional, graph by default]\n"
                "--cuts <number,...,number>[optional, generate cut graph for single instance, ignored for multiple instances]\n"
-               "--apply_cuts <0|1> [Optional (default: false). Generates the cut graph using the cuts defined in each instance. If none are defined, no cuts are applied.]";
+               "--apply_cuts <0|1> [Optional (default: false). [optional,Generates the cut graph using the cuts defined in each instance. If none are defined, no cuts are applied.]\n"
+               "--delete_outdir <0|1> [Optional (default: false). [optional, DANGEROUS Delete output directory if exists.]";
     if (argc < 2) {
         std::cerr
             << "Usage: " << argv[0]
@@ -854,7 +856,7 @@ int main(int argc, char** argv) {
     bool enable_cut = false;
     bool enable_cut_set = false;
     bool singleInstace = false;
-    
+    bool delete_outputdir = false;
     for (int argi = 1; argi < argc; argi += 2) {
         if (argi + 1 >= argc) {
             std::cerr << "Missing value for argument: " << argv[argi] << "\n";
@@ -888,6 +890,9 @@ int main(int argc, char** argv) {
         } else if (key == "--apply_cuts") {
             enable_cut = parse_bool(argv[argi + 1]);
             enable_cut_set = true;
+        }
+        else if (key == "--delete_outdir") {
+            delete_outputdir = parse_bool(argv[argi + 1]);
         } else {
             std::cerr << "Unknown argument: " << key << "\n";
             std::cerr << "Usage:" << argv[0] << " \n" << Usagephrase;
@@ -924,15 +929,27 @@ int main(int argc, char** argv) {
     }
 
     
-    if(REMOVE_OLD_FOLDER){
-        std::cout << "removing existing output directory\n";
+    if(delete_outputdir){
+        std::cout << "Deleting existing output directory\n";
         try{
             std::filesystem::remove_all(outputdir);
+            fs::create_directories(outputdir);
         }catch(std::exception & e){
             std::cerr << "WARNING: fail to remove old directory\n";
         }
-        
     }
+    else{
+        if (is_existing_directory(outputdir)){
+            if(!fs::is_empty(outputdir)){
+                std::cerr << "ERROR:output directory exists and not empty." << std::endl;
+                throw("Output not empty");
+            }
+        }
+        else{
+            fs::create_directories(outputdir);
+        }
+    }
+
     unordered_map<string, string> datasetPathMap; //checking duplicates dataset names and fast insert dataset paths
     for (const auto& datasetPath : datasetPaths){
         if (!is_existing_directory(datasetPath)){
