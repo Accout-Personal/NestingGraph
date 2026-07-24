@@ -1,0 +1,544 @@
+================================================================================
+Running bliss.exe on: artif1_2_DIMACS_z-.txt
+================================================================================
+Nodes:          11
+Leaf nodes:     3
+Bad nodes:      0
+Canrep updates: 1
+Generators:     5
+Max level:      5
+|Aut|:          32
+Total time:     0.09 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: artif1_2_DIMACS_z.txt
+================================================================================
+Nodes:          11
+Leaf nodes:     3
+Bad nodes:      0
+Canrep updates: 1
+Generators:     5
+Max level:      5
+|Aut|:          32
+Total time:     0.15 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: artif2_4_DIMACS_z-.txt
+================================================================================
+Nodes:          52
+Leaf nodes:     3
+Bad nodes:      0
+Canrep updates: 1
+Generators:     18
+Max level:      18
+|Aut|:          63700992
+Total time:     2.14 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: artif2_4_DIMACS_z.txt
+================================================================================
+Nodes:          52
+Leaf nodes:     3
+Bad nodes:      0
+Canrep updates: 1
+Generators:     18
+Max level:      18
+|Aut|:          63700992
+Total time:     2.43 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: BLAZEWICZ1_DIMACS_z-.txt
+================================================================================
+Nodes:          1
+Leaf nodes:     1
+Bad nodes:      0
+Canrep updates: 0
+Generators:     0
+Max level:      0
+|Aut|:          1
+Total time:     0.02 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: BLAZEWICZ1_DIMACS_z.txt
+================================================================================
+Nodes:          1
+Leaf nodes:     1
+Bad nodes:      0
+Canrep updates: 0
+Generators:     0
+Max level:      0
+|Aut|:          1
+Total time:     0.02 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: BLAZEWICZ2_DIMACS_z-.txt
+================================================================================
+Nodes:          15
+Leaf nodes:     3
+Bad nodes:      0
+Canrep updates: 1
+Generators:     7
+Max level:      7
+|Aut|:          128
+Total time:     0.31 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: BLAZEWICZ2_DIMACS_z.txt
+================================================================================
+Nodes:          15
+Leaf nodes:     3
+Bad nodes:      0
+Canrep updates: 1
+Generators:     7
+Max level:      7
+|Aut|:          128
+Total time:     0.36 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: BLAZEWICZ3_DIMACS_z-.txt
+================================================================================
+Nodes:          36
+Leaf nodes:     4
+Bad nodes:      0
+Canrep updates: 1
+Generators:     14
+Max level:      14
+|Aut|:          279936
+Total time:     1.33 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: BLAZEWICZ3_DIMACS_z.txt
+================================================================================
+Nodes:          36
+Leaf nodes:     4
+Bad nodes:      0
+Canrep updates: 1
+Generators:     14
+Max level:      14
+|Aut|:          279936
+Total time:     1.43 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: poly1a_DIMACS_z-.txt
+================================================================================
+Nodes:          1
+Leaf nodes:     1
+Bad nodes:      0
+Canrep updates: 0
+Generators:     0
+Max level:      0
+|Aut|:          1
+Total time:     0.97 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: poly1a_DIMACS_z.txt
+================================================================================
+Nodes:          1
+Leaf nodes:     1
+Bad nodes:      0
+Canrep updates: 0
+Generators:     0
+Max level:      0
+|Aut|:          1
+Total time:     1.19 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: poly1b_DIMACS_z-.txt
+================================================================================
+Nodes:          1
+Leaf nodes:     1
+Bad nodes:      0
+Canrep updates: 0
+Generators:     0
+Max level:      0
+|Aut|:          1
+Total time:     1.72 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: poly1b_DIMACS_z.txt
+================================================================================
+Nodes:          1
+Leaf nodes:     1
+Bad nodes:      0
+Canrep updates: 0
+Generators:     0
+Max level:      0
+|Aut|:          1
+Total time:     2.05 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: poly1c_DIMACS_z-.txt
+================================================================================
+Nodes:          1
+Leaf nodes:     1
+Bad nodes:      0
+Canrep updates: 0
+Generators:     0
+Max level:      0
+|Aut|:          1
+Total time:     0.65 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: poly1c_DIMACS_z.txt
+================================================================================
+Nodes:          1
+Leaf nodes:     1
+Bad nodes:      0
+Canrep updates: 0
+Generators:     0
+Max level:      0
+|Aut|:          1
+Total time:     0.86 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: poly1d_DIMACS_z-.txt
+================================================================================
+Nodes:          1
+Leaf nodes:     1
+Bad nodes:      0
+Canrep updates: 0
+Generators:     0
+Max level:      0
+|Aut|:          1
+Total time:     0.63 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: poly1d_DIMACS_z.txt
+================================================================================
+Nodes:          1
+Leaf nodes:     1
+Bad nodes:      0
+Canrep updates: 0
+Generators:     0
+Max level:      0
+|Aut|:          1
+Total time:     0.83 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: poly1e_DIMACS_z-.txt
+================================================================================
+Nodes:          1
+Leaf nodes:     1
+Bad nodes:      0
+Canrep updates: 0
+Generators:     0
+Max level:      0
+|Aut|:          1
+Total time:     0.45 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: poly1e_DIMACS_z.txt
+================================================================================
+Nodes:          1
+Leaf nodes:     1
+Bad nodes:      0
+Canrep updates: 0
+Generators:     0
+Max level:      0
+|Aut|:          1
+Total time:     0.62 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: RCO1_DIMACS_z-.txt
+================================================================================
+Nodes:          1
+Leaf nodes:     1
+Bad nodes:      0
+Canrep updates: 0
+Generators:     0
+Max level:      0
+|Aut|:          1
+Total time:     0.02 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: RCO1_DIMACS_z.txt
+================================================================================
+Nodes:          1
+Leaf nodes:     1
+Bad nodes:      0
+Canrep updates: 0
+Generators:     0
+Max level:      0
+|Aut|:          1
+Total time:     0.02 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: RCO2_DIMACS_z-.txt
+================================================================================
+Nodes:          15
+Leaf nodes:     3
+Bad nodes:      0
+Canrep updates: 1
+Generators:     7
+Max level:      7
+|Aut|:          128
+Total time:     0.37 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: RCO2_DIMACS_z.txt
+================================================================================
+Nodes:          15
+Leaf nodes:     3
+Bad nodes:      0
+Canrep updates: 1
+Generators:     7
+Max level:      7
+|Aut|:          128
+Total time:     0.41 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: RCO3_DIMACS_z-.txt
+================================================================================
+Nodes:          36
+Leaf nodes:     4
+Bad nodes:      0
+Canrep updates: 1
+Generators:     14
+Max level:      14
+|Aut|:          279936
+Total time:     1.60 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: RCO3_DIMACS_z.txt
+================================================================================
+Nodes:          36
+Leaf nodes:     4
+Bad nodes:      0
+Canrep updates: 1
+Generators:     14
+Max level:      14
+|Aut|:          279936
+Total time:     1.71 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: shapes2_DIMACS_z-.txt
+================================================================================
+Nodes:          7
+Leaf nodes:     3
+Bad nodes:      0
+Canrep updates: 1
+Generators:     3
+Max level:      3
+|Aut|:          8
+Total time:     0.12 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: shapes2_DIMACS_z.txt
+================================================================================
+Nodes:          9
+Leaf nodes:     3
+Bad nodes:      0
+Canrep updates: 1
+Generators:     4
+Max level:      4
+|Aut|:          16
+Total time:     0.19 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: shapes4-small_DIMACS_z-.txt
+================================================================================
+Nodes:          1
+Leaf nodes:     1
+Bad nodes:      0
+Canrep updates: 0
+Generators:     0
+Max level:      0
+|Aut|:          1
+Total time:     0.02 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: shapes4-small_DIMACS_z.txt
+================================================================================
+Nodes:          1
+Leaf nodes:     1
+Bad nodes:      0
+Canrep updates: 0
+Generators:     0
+Max level:      0
+|Aut|:          1
+Total time:     0.03 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: shapes4_DIMACS_z-.txt
+================================================================================
+Nodes:          37
+Leaf nodes:     5
+Bad nodes:      0
+Canrep updates: 1
+Generators:     12
+Max level:      12
+|Aut|:          331776
+Total time:     7.07 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: shapes4_DIMACS_z.txt
+================================================================================
+Nodes:          37
+Leaf nodes:     5
+Bad nodes:      0
+Canrep updates: 1
+Generators:     12
+Max level:      12
+|Aut|:          331776
+Total time:     7.91 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: threep2w9_DIMACS_z-.txt
+================================================================================
+Nodes:          32
+Leaf nodes:     5
+Bad nodes:      0
+Canrep updates: 1
+Generators:     8
+Max level:      7
+|Aut|:          256
+Total time:     0.01 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: threep2w9_DIMACS_z.txt
+================================================================================
+Nodes:          12
+Leaf nodes:     5
+Bad nodes:      0
+Canrep updates: 1
+Generators:     4
+Max level:      3
+|Aut|:          16
+Total time:     0.01 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: threep2_DIMACS_z-.txt
+================================================================================
+Nodes:          12
+Leaf nodes:     5
+Bad nodes:      0
+Canrep updates: 1
+Generators:     4
+Max level:      3
+|Aut|:          16
+Total time:     0.01 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: threep2_DIMACS_z.txt
+================================================================================
+Nodes:          12
+Leaf nodes:     5
+Bad nodes:      0
+Canrep updates: 1
+Generators:     4
+Max level:      3
+|Aut|:          16
+Total time:     0.01 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: threep3w9_DIMACS_z-.txt
+================================================================================
+Nodes:          26
+Leaf nodes:     6
+Bad nodes:      0
+Canrep updates: 1
+Generators:     7
+Max level:      6
+|Aut|:          432
+Total time:     0.05 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: threep3w9_DIMACS_z.txt
+================================================================================
+Nodes:          26
+Leaf nodes:     6
+Bad nodes:      0
+Canrep updates: 1
+Generators:     7
+Max level:      6
+|Aut|:          432
+Total time:     0.06 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: threep3_DIMACS_z-.txt
+================================================================================
+Nodes:          26
+Leaf nodes:     6
+Bad nodes:      0
+Canrep updates: 1
+Generators:     7
+Max level:      6
+|Aut|:          432
+Total time:     0.04 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: threep3_DIMACS_z.txt
+================================================================================
+Nodes:          26
+Leaf nodes:     5
+Bad nodes:      0
+Canrep updates: 1
+Generators:     7
+Max level:      6
+|Aut|:          432
+Total time:     0.05 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: three_DIMACS_z-.txt
+================================================================================
+Nodes:          58
+Leaf nodes:     8
+Bad nodes:      0
+Canrep updates: 1
+Generators:     19
+Max level:      19
+|Aut|:          209018880
+Total time:     0.00 seconds
+
+Exit code: 0
+================================================================================
+Running bliss.exe on: three_DIMACS_z.txt
+================================================================================
+Nodes:          30
+Leaf nodes:     5
+Bad nodes:      0
+Canrep updates: 1
+Generators:     12
+Max level:      12
+|Aut|:          27648
+Total time:     0.00 seconds

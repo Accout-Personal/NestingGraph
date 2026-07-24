@@ -6,7 +6,7 @@ set "ROOT=%~dp0"
 REM Remove trailing backslash for cleaner joins (optional)
 if "%ROOT:~-1%"=="\" set "ROOT=%ROOT:~0,-1%"
 
-set "EXE=%ROOT%\build-static\Release\nesting_graph.exe"
+set "EXE=%ROOT%\nesting_graph.exe"
 set "DATASETS=%ROOT%\Inputs\dataset"
 set "INSTANCES=%ROOT%\Inputs\Instances"
 
@@ -27,7 +27,7 @@ if not exist "%INSTANCES%" (
 echo Running: "%EXE%"
 echo   --datasets  "%DATASETS%"
 echo   --instances "%INSTANCES%"
-echo   --typeOriented 1
+echo   --typeOriented 0
 echo   --CliqueCovering 1
 echo.
 

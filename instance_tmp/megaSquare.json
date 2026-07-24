@@ -1,0 +1,13 @@
+[
+    {
+        "dataset": "megaSquare",
+        "outputName": "megaSquare",
+        "quantity": 1,
+        "width": 100.0,
+        "length": 100.0,
+        "cuts": [
+            99,
+            100.0
+        ]
+    }
+]

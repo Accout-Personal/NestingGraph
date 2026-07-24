@@ -16,22 +16,23 @@
 #include <system_error>
 #include <chrono>
 
-using namespace std;
-
 namespace fs = std::filesystem;
+using std::vector;
+using std::string;
+using std::pair;
+using std::unordered_map;
 
 bool REMOVE_OLD_FOLDER = false;
 bool CLIQUE_COVERING_ADD_LAYER_CLIQUE = true;
 bool OUTPUT_ADD_LAYER_CLIQUE = true;
 bool OUT_OLD_METADATA = false;
 
-
-std::string to_string_fixed(double x, int decimals) {
+string to_string_fixed(double x, int decimals) {
     std::array<char, 128> buf{};
     auto [ptr, ec] = std::to_chars(buf.data(), buf.data() + buf.size(),
                                    x, std::chars_format::fixed, decimals);
     if (ec != std::errc{}) throw std::runtime_error("to_chars failed");
-    return std::string(buf.data(), ptr);
+    return string(buf.data(), ptr);
 }
 
 // argv0 = argv[0] dal main
@@ -51,18 +52,18 @@ fs::path executable_path_from_argv0(const char* argv0) {
 }
 
 
-bool is_existing_directory(const std::string& s) {
-    if (s.find('\0') != std::string::npos) return false;
+bool is_existing_directory(const string& s) {
+    if (s.find('\0') != string::npos) return false;
     std::error_code ec;
     return std::filesystem::is_directory(std::filesystem::path(s), ec) && !ec;
 }
 
  // polygons can be any JSON value (array/object)
-void writeNfpInfpJson(const std::string& outputdir,
+void writeNfpInfpJson(const string& outputdir,
                       const nlohmann::json& polygons){
 
     // nfp_infp = json.dumps(polygons, indent=2)
-    const std::string nfp_infp = polygons.dump(2);
+    const string nfp_infp = polygons.dump(2);
 
     // with open(outputdir+'/nfp-infp.json', 'w') as file: file.write(...)
     const fs::path outPath = fs::path(outputdir);
@@ -86,19 +87,19 @@ GeometryUtil::BBox computeBoundingBox(json poly){
 
 
 using PtIJ16   = std::array<int16_t, 2>;   // (i, j) grid indices
-using PatternIJ = std::vector<PtIJ16>;
+using PatternIJ = vector<PtIJ16>;
 
 using PtD      = std::array<double, 2>;    // (x, y) world coords (double)
-using PatternPos = std::vector<PtD>;
+using PatternPos = vector<PtD>;
 
-using NfpIndexTableT = std::unordered_map<std::string,
-                        std::unordered_map<std::string, PatternIJ>>;
+using NfpIndexTableT = unordered_map<string,
+                        unordered_map<string, PatternIJ>>;
 
-using NfpPosTableT   = std::unordered_map<std::string,
-                        std::unordered_map<std::string, PatternPos>>;
+using NfpPosTableT   = unordered_map<string,
+                        unordered_map<string, PatternPos>>;
 
 static inline void buildNfpPatternsForPoly(
-    const std::string& key,
+    const string& key,
     nlohmann::json& poly,                 // must be non-const because we mutate nfp vertices by pivot shifting
     const nlohmann::json& pivot,          // {x,y}
     double gx, double gy,
@@ -229,7 +230,7 @@ static inline void buildNfpPatternsForPoly(
             }
         }
 
-        const std::string other = nfp.at("POLYGON").get<std::string>();
+        const string other = nfp.at("POLYGON").get<string>();
         nfpIndexTable[key][other] = std::move(pattern);
         nfpPosTable[key][other]   = std::move(pattern_pos);
     }
@@ -249,7 +250,7 @@ struct PointCoord {
 };
 
 // board: JSON array of {"x":..., "y":...}
-static inline std::vector<GenPoint>
+static inline vector<GenPoint>
 generatePoints(double length,double width, double freq){
     if (freq == 0.0) {
         throw std::invalid_argument("error: freq must be non-zero");
@@ -260,7 +261,7 @@ generatePoints(double length,double width, double freq){
     const int stepsx = static_cast<int>(length / freq);
     const int stepsy = static_cast<int>(width / freq);
 
-    std::vector<GenPoint> points;
+    vector<GenPoint> points;
     points.reserve(static_cast<std::size_t>(stepsx + 1) * static_cast<std::size_t>(stepsy + 1));
 
     for (int i = 0; i <= stepsx; ++i) {
@@ -329,7 +330,7 @@ static inline LayersResult generateLayers(
 
     for (auto& [key, val] : polygons.items()) {
         
-        const std::string polyKey = key;
+        const string polyKey = key;
         const json& mainPiece = val;
 
         unsigned int quantity = mainPiece.value("QUANTITY", 1);
@@ -346,7 +347,7 @@ static inline LayersResult generateLayers(
             LayerPoints lp;
             lp.polygon = polyKey;
             lp.layer = layer;
-            //std::cout << "Board Area: " << boardArea << " InnerfitArea " << innerFitArea << endl;
+            //std::cout << "Board Area: " << boardArea << " InnerfitArea " << innerFitArea << std::endl;
             lp.innerFitPoints.reserve(static_cast<unsigned int>(innerFitArea + 16)); //TODO: estimate better using area ratio
             
             LayerMatrix lm;
@@ -393,7 +394,7 @@ static inline LayersResult generateLayers(
             MaxY = 0;
                
             /*for (auto& row : LayerCoords) {
-                cout << row[0] << " " << row[1] << " " << row[2] << " "<< row[3] << " \n";
+                std::cout << row[0] << " " << row[1] << " " << row[2] << " "<< row[3] << " \n";
             }*/
                
             for (unsigned int j = 0 ; j< LayerCoords.size(); j++)
@@ -402,7 +403,7 @@ static inline LayersResult generateLayers(
                  {
                      MaxY = LayerCoords[j].y;
                  }
-                 //cout << "pushing back Y: "<< MaxY << " X:" << LayerCoords[j][1] << "\n";
+                 //std::cout << "pushing back Y: "<< MaxY << " X:" << LayerCoords[j][1] << "\n";
                  lp.Ymap[MaxY - LayerCoords.front().y].push_back(LayerCoords[j].id);
 
             }
@@ -422,7 +423,7 @@ static inline LayersResult generateLayers(
 }
 
 void processGroupPair(
-    std::vector<GenPoint> PointsA,
+    vector<GenPoint> PointsA,
     PatternIJ& NFPA_B,
     LayerMatrix& innerMatrixB,
     GeometryUtil::BBox BBoxB,
@@ -463,7 +464,7 @@ void processGroupPair(
 }
 
 string findFileinDirectory(const string& directory, const string& filename){
-    error_code ec;
+    std::error_code ec;
     for (const fs::directory_entry& e : fs::directory_iterator(directory,ec)) {
         if (e.path().filename() == filename) {
             return e.path().string();
@@ -487,7 +488,7 @@ vector<json> loadJson(string jsonPath,unordered_map<string,string> datasetPathMa
         file >> dataset;
     }
     catch (const nlohmann::json::parse_error& e) {
-        cerr << "Error: Failed to parse JSON file " << jsonPath << ": " << e.what() << "\n";
+        std::cerr << "Error: Failed to parse JSON file " << jsonPath << ": " << e.what() << "\n";
         exit(1);
     }
     // case1: json is an object containing a single dataset/instance
@@ -499,11 +500,11 @@ vector<json> loadJson(string jsonPath,unordered_map<string,string> datasetPathMa
             try{
                 dataset["dataset"] = datasetPathMap.at(datasetName);
             }
-            catch(const out_of_range&){
+            catch(const std::out_of_range&){
                  if(fs::exists(dataset["dataset"].get<string>()) && fs::is_regular_file(dataset["dataset"].get<string>())){
                     //do nothing, the path is correct
                  }else{
-                    cerr << "Error: dataset name " << datasetName << " not found in provided dataset directories.\n";
+                    std::cerr << "Error: dataset name " << datasetName << " not found in provided dataset directories.\n";
                     exit(1);
                 }
             }
@@ -516,7 +517,7 @@ vector<json> loadJson(string jsonPath,unordered_map<string,string> datasetPathMa
         //Make a wrapper json instance
         json wrapper;
         wrapper["dataset"] = jsonPath;
-        wrapper["outputName"] = filesystem::path(jsonPath).stem().string();
+        wrapper["outputName"] = std::filesystem::path(jsonPath).stem().string();
         //set width and length
 
         if(dataset.contains("width")){
@@ -525,7 +526,7 @@ vector<json> loadJson(string jsonPath,unordered_map<string,string> datasetPathMa
         }
         else{
             if (!width_set){
-                cerr << "Error: width not specified in json or as argument.\n";
+                std::cerr << "Error: width not specified in json or as argument.\n";
                 exit(1);
             }
             wrapper["width"] = width;
@@ -537,7 +538,7 @@ vector<json> loadJson(string jsonPath,unordered_map<string,string> datasetPathMa
         }
         else{
             if (!length_set){
-                cerr << "Error: length not specified in json or as argument.\n";
+                std::cerr << "Error: length not specified in json or as argument.\n";
                 exit(1);
             }
             wrapper["length"] = length;
@@ -545,7 +546,7 @@ vector<json> loadJson(string jsonPath,unordered_map<string,string> datasetPathMa
         wrapper["quantity"] = json::object();
         for (auto& [key, val] : dataset.items()){
             if(!val.contains("VERTICES") || !val["VERTICES"].is_array()){
-                cerr << "Error: polygon " << key << " missing VERTICES array.\n";
+                std::cerr << "Error: polygon " << key << " missing VERTICES array.\n";
                 exit(1);
             }
             wrapper["quantity"][key] = dataset[key].value("QUANTITY",1);
@@ -559,25 +560,25 @@ vector<json> loadJson(string jsonPath,unordered_map<string,string> datasetPathMa
         for (auto& set : dataset){
             if(!set.contains("dataset"))
             {
-                cerr << "Error: dataset : "<<set.dump(0) <<"is missing \"dataset\" field" << endl;
+                std::cerr << "Error: dataset : "<<set.dump(0) <<"is missing \"dataset\" field" << std::endl;
                 exit(1);
             }
 
             if(!set.contains("outputName"))
             {
-                cerr << "Error: dataset : "<<set.dump(0) <<"is missing \"outputName\" field" << endl;
+                std::cerr << "Error: dataset : "<<set.dump(0) <<"is missing \"outputName\" field" << std::endl;
                 exit(1);
             }
 
             if(!set.contains("width"))
             {
-                cerr << "Error: dataset : "<<set.dump(0) <<"is missing \"width\" field" << endl;
+                std::cerr << "Error: dataset : "<<set.dump(0) <<"is missing \"width\" field" << std::endl;
                 exit(1);
             }
 
             if(!set.contains("length"))
             {
-                cerr << "Error: dataset : "<<set.dump(0) <<"is missing \"length\" field" << endl;
+                std::cerr << "Error: dataset : "<<set.dump(0) <<"is missing \"length\" field" << std::endl;
                 exit(1);
             }
 
@@ -587,12 +588,12 @@ vector<json> loadJson(string jsonPath,unordered_map<string,string> datasetPathMa
             try{
                  set["dataset"] = datasetPathMap.at(datasetName);
             }
-            catch(const out_of_range&){
+            catch(const std::out_of_range&){
                 //try to see if the dataset is the path instead of filename
                 if(fs::exists(set["dataset"].get<string>()) && fs::is_regular_file(set["dataset"].get<string>())){
                 //do nothing, the path is correct
                 }else{
-                    cerr << "Error: dataset name " << datasetName << " not found in provided dataset directories.\n";
+                    std::cerr << "Error: dataset name " << datasetName << " not found in provided dataset directories.\n";
                     exit(1);
                 }
             }
@@ -602,13 +603,13 @@ vector<json> loadJson(string jsonPath,unordered_map<string,string> datasetPathMa
         return datasets;
     }
     else{
-        cerr << "Error: JSON root must be an object or an array.\n";
+        std::cerr << "Error: JSON root must be an object or an array.\n";
         exit(1);
     }
 }
 
 static bool parse_bool(const char* s) {
-    std::string v(s);
+    string v(s);
     if (v == "1" || v == "true" || v == "TRUE" || v == "True") return true;
     if (v == "0" || v == "false" || v == "FALSE" || v == "False") return false;
     throw std::invalid_argument("Expected boolean (0/1/true/false), got: " + v);
@@ -642,8 +643,8 @@ unordered_map<string,string> MapDuplicateDataset(json &polydataset){
     return finalMap;
 }
 
-std::vector<double> split_by_token(const std::string& s, const std::string& token) {
-    std::vector<double> out;
+vector<double> split_by_token(const string& s, const string& token) {
+    vector<double> out;
     if (token.empty()) { // avoid infinite loop
         out.push_back(std::stoi(s));
         return out;
@@ -652,7 +653,7 @@ std::vector<double> split_by_token(const std::string& s, const std::string& toke
     std::size_t pos = 0;
     while (true) {
         std::size_t next = s.find(token, pos);
-        if (next == std::string::npos) {
+        if (next == string::npos) {
             out.push_back(std::stod(s.substr(pos)));
             break;
         }
@@ -662,16 +663,16 @@ std::vector<double> split_by_token(const std::string& s, const std::string& toke
     return out;
 }
 
-std::vector<double> sanitizeCuts(std::vector<double> cuts,double boardLength){
+vector<double> sanitizeCuts(vector<double> cuts,double boardLength){
     std::sort(cuts.begin(),cuts.end(), std::greater());
     vector<double> cutsSanitized;
     for(auto cut:cuts){
         if (cut<0){
-            cerr << "WARNING: negative cut length, ignore.\n";
+            std::cerr << "WARNING: negative cut length, ignore.\n";
             continue;
         }
         if(cut >= boardLength){
-            cerr << "WARNING: cut is at least longer than board length, nothing will be cut\n";
+            std::cerr << "WARNING: cut is at least longer than board length, nothing will be cut\n";
         }
         cutsSanitized.push_back(cut);
             
@@ -728,9 +729,9 @@ pair <vector<uint32_t>,vector<bool>> MakeMap(vector<uint32_t>  removeNodes,uint3
 // - from[i] must not be empty (to avoid infinite loops)
 // Returns true if the file content changed.
 // Throws std::runtime_error on I/O errors or invalid arguments.
-inline bool SearchReplaceInFile(const std::string& path,
-                               const std::vector<std::string>& from,
-                               const std::vector<std::string>& to)
+inline bool SearchReplaceInFile(const string& path,
+                               const vector<string>& from,
+                               const vector<string>& to)
 {
     if (from.size() != to.size()) {
         throw std::runtime_error("SearchReplaceInFile: 'from' and 'to' sizes differ.");
@@ -748,17 +749,17 @@ inline bool SearchReplaceInFile(const std::string& path,
     }
     std::ostringstream ss;
     ss << in.rdbuf();
-    std::string content = ss.str();
+    string content = ss.str();
 
     bool changed = false;
 
     // Apply replacements in order: from[i] -> to[i]
     for (std::size_t i = 0; i < from.size(); ++i) {
-        const std::string& f = from[i];
-        const std::string& t = to[i];
+        const string& f = from[i];
+        const string& t = to[i];
 
         std::size_t pos = 0;
-        while ((pos = content.find(f, pos)) != std::string::npos) {
+        while ((pos = content.find(f, pos)) != string::npos) {
             content.replace(pos, f.size(), t);
             pos += t.size();
             changed = true;
@@ -780,8 +781,8 @@ inline bool SearchReplaceInFile(const std::string& path,
     return true;
 }
 
-bool CopyFile(const std::string& source,
-              const std::string& destination,
+bool CopyFile(const string& source,
+              const string& destination,
               bool overwrite = false){
     std::error_code ec;
 
@@ -827,7 +828,7 @@ int main(int argc, char** argv) {
                "--cuts <number,...,number>[optional, generate cut graph for single instance, ignored for multiple instances]\n"
                "--apply_cuts <0|1> [Optional (default: false). Generates the cut graph using the cuts defined in each instance. If none are defined, no cuts are applied.]";
     if (argc < 2) {
-        cerr
+        std::cerr
             << "Usage: " << argv[0]
             << Usagephrase;
         return 1;
@@ -860,7 +861,7 @@ int main(int argc, char** argv) {
             return 1;
         }
 
-        std::string key = argv[argi];
+        string key = argv[argi];
 
         if (key == "--instances") {
             inputPaths.push_back(argv[argi + 1]);
@@ -895,47 +896,47 @@ int main(int argc, char** argv) {
     }
     
     if (datasetPaths.empty()){
-        cerr << "ERROR: Dataset path is required. Use -datasetPath <dataset path>\n";
+        std::cerr << "ERROR: Dataset path is required. Use -datasetPath <dataset path>\n";
         return 1;
     }
     
 
     if (inputPaths.empty()){
-        cerr << "ERROR: Input path is required. Use -input <instance json path> <datasest json path> <dataset/instance folder>\n";
+        std::cerr << "ERROR: Input path is required. Use -input <instance json path> <datasest json path> <dataset/instance folder>\n";
         return 1;
     }
 
     if (outputdir.empty()){
-        cerr << "Warning: Output directory not specified, using default ./results \n";
+        std::cerr << "Warning: Output directory not specified, using default ./results \n";
         outputdir = dir_path.string() + "/results/";
     }
 
     if (!type_oriented_param){
-        cerr << "Warning: type_oriented parameter not set, defaulting to false.\n";
+        std::cerr << "Warning: type_oriented parameter not set, defaulting to false.\n";
     }
 
     if (!cliqueCovering_param){
-        cerr << "Warning: cliqueCovering parameter not set, defaulting to false.\n";
+        std::cerr << "Warning: cliqueCovering parameter not set, defaulting to false.\n";
     }
 
     if (!enable_cut_set){
-        cerr << "Warning: apply_cuts parameter not set, defaulting to false.\n";
+        std::cerr << "Warning: apply_cuts parameter not set, defaulting to false.\n";
     }
 
     
     if(REMOVE_OLD_FOLDER){
-        cout << "removing existing output directory\n";
+        std::cout << "removing existing output directory\n";
         try{
             std::filesystem::remove_all(outputdir);
-        }catch(exception & e){
-            cerr << "WARNING: fail to remove old directory\n";
+        }catch(std::exception & e){
+            std::cerr << "WARNING: fail to remove old directory\n";
         }
         
     }
     unordered_map<string, string> datasetPathMap; //checking duplicates dataset names and fast insert dataset paths
     for (const auto& datasetPath : datasetPaths){
         if (!is_existing_directory(datasetPath)){
-            cerr << "Error: dataset path is not a valid folder directory: " << datasetPath << "\n";
+            std::cerr << "Error: dataset path is not a valid folder directory: " << datasetPath << "\n";
             return 1;
         }
         for (const auto& entry : fs::recursive_directory_iterator(datasetPath)){
@@ -944,7 +945,7 @@ int main(int argc, char** argv) {
                 string datasetName = entry.path().stem().string();
 
                 if (datasetPathMap.find(datasetName) != datasetPathMap.end()){
-                    cerr << "Error: Duplicate dataset name found: " << datasetName << " at " 
+                    std::cerr << "Error: Duplicate dataset name found: " << datasetName << " at " 
                          << datasetJsonPath << "\n" 
                          << datasetPathMap.at(datasetName) << "\n";
                     return 1;
@@ -958,26 +959,26 @@ int main(int argc, char** argv) {
     vector <json> datasets;
     // Load dataset json
     //case1: inputPath is a file path
-    error_code ec;
+    std::error_code ec;
     for (const auto& inputPath : inputPaths){
-        if (filesystem::is_regular_file(inputPath, ec)) {
-            ifstream in(inputPath);
+        if (std::filesystem::is_regular_file(inputPath, ec)) {
+            std::ifstream in(inputPath);
             if (!in) {
-                throw runtime_error("Failed to open input file: " + inputPath);
+                throw std::runtime_error("Failed to open input file: " + inputPath);
             }
             // Load dataset json
             try {
                 vector<json> tmpJson = loadJson(inputPath,datasetPathMap,width_set,width,length_set,length);
                 datasets.insert(datasets.end(), tmpJson.begin(), tmpJson.end());
 
-            } catch (const exception& e) {
-                cerr << "Error parsing JSON file(613): " << e.what() << "\n";
-                cerr << "File: " << inputPath << "\n";
+            } catch (const std::exception& e) {
+                std::cerr << "Error parsing JSON file(613): " << e.what() << "\n";
+                std::cerr << "File: " << inputPath << "\n";
                 return 1;
             }
         }
         // case2: inputPath is a directory path
-        else if (filesystem::is_directory(inputPath, ec)) { 
+        else if (std::filesystem::is_directory(inputPath, ec)) { 
             
             try {
                 //iterate through all json files in the directory
@@ -987,21 +988,21 @@ int main(int argc, char** argv) {
                     for (auto &set : tmpJson){
                         string name = set["outputName"].get<string>();
                         if (outputNameMap.find(name) != outputNameMap.end()){
-                            cerr << "Error: Duplicate dataset name found: " << name << "\n";
+                            std::cerr << "Error: Duplicate dataset name found: " << name << "\n";
                             return 1;
                         }
                         outputNameMap[name] = 1;
                     }
                     datasets.insert(datasets.end(), tmpJson.begin(), tmpJson.end());
                 }
-            } catch (const exception& e) {
-                cerr << "Error parsing JSON file: " << e.what() << "\n";
-                cerr << "File: " << inputPath << "\n";
+            } catch (const std::exception& e) {
+                std::cerr << "Error parsing JSON file: " << e.what() << "\n";
+                std::cerr << "File: " << inputPath << "\n";
                 return 1;
             }
         }
         else {
-            cerr << "Error: input path is not a valid file or directory: " << inputPath << "\n";
+            std::cerr << "Error: input path is not a valid file or directory: " << inputPath << "\n";
             return 1;
         }
     }
@@ -1052,7 +1053,7 @@ int main(int argc, char** argv) {
 
         if (enable_cut && set.contains("cuts") && !set["cuts"].empty()){
             if(!set.contains("cuts") || set["cuts"].empty()) {
-                cout << "WARNING: dataset: "<< outputname << " doesnt have cuts field, skipped.\n";
+                std::cout << "WARNING: dataset: "<< outputname << " doesnt have cuts field, skipped.\n";
                 continue;
             }
 
@@ -1064,7 +1065,7 @@ int main(int argc, char** argv) {
         unsigned int gx = step;
         unsigned int gy = step;
 
-        error_code ec;
+        std::error_code ec;
         std::ifstream file(selected);
         if (!file) throw std::runtime_error("Cannot open: " + selected);
         json dataset = json::parse(file);
@@ -1118,18 +1119,18 @@ int main(int argc, char** argv) {
         //    std::cout << key << " " << (dataset[key]["QUANTITY"]) << "\n";
         //}
         auto start = std::chrono::steady_clock::now();
-        cout << "Generating NFP..\n";
+        std::cout << "Generating NFP..\n";
         json polygons;
         try {
             polygons = NFPTool::processNFP(dataset, length, width);
-        } catch (const exception& e) {
-            cerr << "Error during NFP processing: " << e.what() << "\n";
+        } catch (const std::exception& e) {
+            std::cerr << "Error during NFP processing: " << e.what() << "\n";
             return 1;
         }
         json polygonsWrite = polygons;
         auto end = std::chrono::steady_clock::now();
         long long total_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-        cout << "NFP generated time estimation: " << total_ms << " ms" << endl;
+        std::cout << "NFP generated time estimation: " << total_ms << " ms" << std::endl;
         //std::cout << "NFP Generated:" << polygons.dump(1) << "\n";
         // write the dataset with NFP into JSON file
         
@@ -1241,30 +1242,30 @@ int main(int argc, char** argv) {
             if(!type_oriented){
                 //graphCopy useful if needed to compute NFP edges
                 if (CLIQUE_COVERING_ADD_LAYER_CLIQUE){
-                    cout << "Add layer enabled: add layer before clique covering\n";
+                    std::cout << "Add layer enabled: add layer before clique covering\n";
                     graphCopy.loadGraph(graph); //make a copybackup before adding new edges;
                     //Add clique edges for each layer if not type oriented. And flag is set true
                     addLayerPolyClique(graph, layers);
-                    //cout << "Graph edges before cover"<< graph.getNumEdges() << "\n";
-                    cout << "Starting clique covering: Max1-EK\n";
+                    //std::cout << "Graph edges before cover"<< graph.getNumEdges() << "\n";
+                    std::cout << "Starting clique covering: Max1-EK\n";
                     max1Cover = maximum1Heuristic(graph);
-                    //cout << "Start "
+                    //std::cout << "Start "
                     max1MinEKCover = expandKouHeuristic(graph, max1Cover);
-                    //cout << "Graph edges after cover"<< graph.getNumEdges() << "\n";
+                    //std::cout << "Graph edges after cover"<< graph.getNumEdges() << "\n";
                 }else{
-                    cout << "Add layer disabled: add layer after clique covering\n";
-                    cout << "Starting clique covering: Max1-EK\n";
+                    std::cout << "Add layer disabled: add layer after clique covering\n";
+                    std::cout << "Starting clique covering: Max1-EK\n";
                     max1Cover = maximum1Heuristic(graph);
-                    //cout << "Start "
+                    //std::cout << "Start "
                     max1MinEKCover = expandKouHeuristic(graph, max1Cover);
                     addLayerPolyClique(graph, layers);
                 }
                 
             }
             else{
-                cout << "Starting clique covering: Max1-EK\n";
+                std::cout << "Starting clique covering: Max1-EK\n";
                 max1Cover = maximum1Heuristic(graph);
-                //cout << "Start "
+                //std::cout << "Start "
                 max1MinEKCover = expandKouHeuristic(graph, max1Cover);
             }
 
@@ -1284,19 +1285,19 @@ int main(int argc, char** argv) {
         }
         double density = (2.0 * (NFPEdges+cliqueEdges)) / (NumberVertices * (NumberVertices - 1));
 
-        cout << " graph edges from Graph: " << graph.getNumEdges() << "\n";
+        std::cout << " graph edges from Graph: " << graph.getNumEdges() << "\n";
 
-        cout << "Graph statistics:\n";
-        cout << "  Dataset name:     " << outputname << "\n";
-        cout << "  Number of vertices: " << graph.getNumVertices() << "\n";
-        cout << "  Number of NFP edges: " << NFPEdges << "\n";
-        cout << "  Number of clique edges:   " << cliqueEdges << "\n";
-        cout << "  Number of edges:    " << NFPEdges+cliqueEdges << "\n";
-        cout << "  Density:            " << density << "\n";
+        std::cout << "Graph statistics:\n";
+        std::cout << "  Dataset name:     " << outputname << "\n";
+        std::cout << "  Number of vertices: " << graph.getNumVertices() << "\n";
+        std::cout << "  Number of NFP edges: " << NFPEdges << "\n";
+        std::cout << "  Number of clique edges:   " << cliqueEdges << "\n";
+        std::cout << "  Number of edges:    " << NFPEdges+cliqueEdges << "\n";
+        std::cout << "  Density:            " << density << "\n";
         if(cliqueCovering){
-            cout << "  Number of cliques (clique covering): " << max1MinEKCover.size() << "\n";
+            std::cout << "  Number of cliques (clique covering): " << max1MinEKCover.size() << "\n";
         }
-        cout << "Finished processing dataset: " << outputname << "\n";
+        std::cout << "Finished processing dataset: " << outputname << "\n";
 
 
 
@@ -1305,7 +1306,7 @@ int main(int argc, char** argv) {
   
         //TODO: write metadata on top of graph
         // Output graph to file
-        cout << "saving result..\n";
+        std::cout << "saving result..\n";
         if(enable_cut){
             if(singleInstace){
                 outputDataset = outputdir + "/cut_" + to_string_fixed(length,1);
@@ -1328,21 +1329,21 @@ int main(int argc, char** argv) {
             //# number of cliques in the edge-clique cover (# of lines below): |C| = …
             std::ofstream out(cliqueOutputdir, std::ios::out | std::ios::trunc);
             
-            out <<"# G_z number of vertices: |V| = " << NumberVertices << endl;
-            out <<"# G_z number of edges: |E| = " << NFPEdges+cliqueEdges << endl;
-            out <<"# number of cliques in the edge-clique cover (# of lines below): |C| = " << TotalCliqueCount << endl;
-            out << fixed << setprecision(1) <<"#strip height z = " << length << endl;
-            out <<"# number of polygons: |P| = " << total_polygon << endl;
-            //out <<"# number of cliques in the edge-clique cover (# of lines below): |C| =" << cliqueCount+ layerCliques.size() << endl;
+            out <<"# G_z number of vertices: |V| = " << NumberVertices << std::endl;
+            out <<"# G_z number of edges: |E| = " << NFPEdges+cliqueEdges << std::endl;
+            out <<"# number of cliques in the edge-clique cover (# of lines below): |C| = " << TotalCliqueCount << std::endl;
+            out << std::fixed << std::setprecision(1) <<"#strip height z = " << length << std::endl;
+            out <<"# number of polygons: |P| = " << total_polygon << std::endl;
+            //out <<"# number of cliques in the edge-clique cover (# of lines below): |C| =" << cliqueCount+ layerCliques.size() << std::endl;
             //Piece oriented + clique covering add layer clique.
             if(!type_oriented && OUTPUT_ADD_LAYER_CLIQUE){
-                cout << "adding layer cliques..\n";                 
-                cout << "clique count: " << cliqueCount << endl;
+                std::cout << "adding layer cliques..\n";                 
+                std::cout << "clique count: " << cliqueCount << std::endl;
                 
                 for (const auto& [layer, poly] : layers.layerPoly) {
                     const uint64_t start = layers.layerOfPoint[layer].indexRange.first;
                     const uint64_t end = layers.layerOfPoint[layer].indexRange.second;
-                    //cout << "Printing layer clique\n";
+                    //std::cout << "Printing layer clique\n";
                     for (uint64_t i = start; i <= end;i++) {
                         out << i << " ";
                     }
@@ -1353,10 +1354,10 @@ int main(int argc, char** argv) {
             max1MinEKCover.writeIntoFile(cliqueOutputdir);
         }
         else{
-            const string graphOutputPath = outputDataset + "/" + outputname+"_graph_"+to_string_fixed(length,1)+".csv";
+            const string graphOutputPath = outputDataset + "/" + outputname + "_graph_" + to_string_fixed(length,1) + ".csv";
             graph.writeEdgesToFile(graphOutputPath);
 
-            const string layerVertices = outputDataset + "/"+outputname+"_layerClique_"+to_string(length)+".txt";
+            const string layerVertices = outputDataset + "/"+outputname + "_layerClique_" + std::to_string(length) + ".txt";
             std::ofstream outLayerVertices(layerVertices, std::ios::out | std::ios::trunc);
             outLayerVertices <<"#start end vertices\n";
             for (const auto& [layer, poly] : layers.layerPoly) {
@@ -1369,9 +1370,9 @@ int main(int argc, char** argv) {
         
         // Write pointsCoordinate
         const string pointsOutputPath = outputDataset + "/" + outputname+"_graph2Strip_"+to_string_fixed(length,1)+".txt";
-        ofstream pointsOut(pointsOutputPath, ios::out | ios::trunc);
+        std::ofstream pointsOut(pointsOutputPath, std::ios::out | std::ios::trunc);
         if (!pointsOut) {
-            throw runtime_error("Failed to open file for writing: " + pointsOutputPath);
+            throw std::runtime_error("Failed to open file for writing: " + pointsOutputPath);
         }
         pointsOut << "# ID polygon, strip coord h (height), strip coord w (width), ID of vertex\n";
         for (const auto& lp : layers.layerOfPoint) {
@@ -1389,9 +1390,9 @@ int main(int argc, char** argv) {
         ////Write metadata
         if(OUT_OLD_METADATA){
             const string metadataOutputPath = outputDataset + "/metadata.csv";
-            ofstream metadataOut(metadataOutputPath, ios::out | ios::trunc);
+            std::ofstream metadataOut(metadataOutputPath, std::ios::out | std::ios::trunc);
             if (!metadataOut) {
-                throw runtime_error("Failed to open file for writing: " + metadataOutputPath);
+                throw std::runtime_error("Failed to open file for writing: " + metadataOutputPath);
             }
 
             metadataOut <<"Name :\t" <<outputname << "\n";
@@ -1464,15 +1465,15 @@ int main(int argc, char** argv) {
 
             //add pointcoord
             const string pointsOutputPath = outputDataset + "/"+outputname+"_graph2Strip_"+to_string(cut)+".txt";
-            ofstream pointsOut(pointsOutputPath, ios::out | ios::trunc);
+            std::ofstream pointsOut(pointsOutputPath, std::ios::out | std::ios::trunc);
             if (!pointsOut) {
-                throw runtime_error("Failed to open file for writing: " + pointsOutputPath);
+                throw std::runtime_error("Failed to open file for writing: " + pointsOutputPath);
             }
             pointsOut << "# ID polygon, strip coord h (height), strip coord w (width), ID of vertex\n";
             for (const auto& lp : newIndex) {
                 pointsOut << lp.layer << "," << lp.x << "," << lp.y << "," << lp.id << "\n";
             }
-            cout << "removing nodes in cut \n";
+            std::cout << "removing nodes in cut \n";
 
             graph.removeNodes(removeList);
             
@@ -1480,12 +1481,12 @@ int main(int argc, char** argv) {
             uint32_t NumberVerticesCut = graph.getNumVertices();
             
             density = (2.0*NumberEdges)/(NumberVerticesCut*NumberVerticesCut-1);
-            cout << "Graph statistics:\n";
-            cout << "  Dataset name:     " << outputname << "\n";
-            cout << "  Number of vertices: " << NumberVerticesCut << "\n";
-            cout << "  Number of clique edges:   " << cliqueEdges << "\n";
-            cout << "  Number of edges:    " << NumberEdges << "\n";
-            cout << "  Density:            " << density << "\n";
+            std::cout << "Graph statistics:\n";
+            std::cout << "  Dataset name:     " << outputname << "\n";
+            std::cout << "  Number of vertices: " << NumberVerticesCut << "\n";
+            std::cout << "  Number of clique edges:   " << cliqueEdges << "\n";
+            std::cout << "  Number of edges:    " << NumberEdges << "\n";
+            std::cout << "  Density:            " << density << "\n";
 
             if (cliqueCovering){
                 const string cliqueOutputdir = outputDataset + "/"+outputname+"_ECC_"+to_string(cut)+".txt";
@@ -1494,16 +1495,16 @@ int main(int argc, char** argv) {
                 if(OUTPUT_ADD_LAYER_CLIQUE){
                     TotalCliqueCount += layerCliques.size();
                 }
-                cout << "  Number of cliques (clique covering): " << TotalCliqueCount << "\n";
+                std::cout << "  Number of cliques (clique covering): " << TotalCliqueCount << "\n";
                 
                 //# number of cliques in the edge-clique cover (# of lines below): |C| = …
                 std::ofstream out(cliqueOutputdir, std::ios::out | std::ios::trunc);
                 
-                out <<"# G_z number of vertices: |V| = " << NumberVerticesCut << endl;
-                out <<"# G_z number of edges: |E| = " << NumberEdges << endl;
-                out <<"# number of cliques in the edge-clique cover (# of lines below): |C| = " << TotalCliqueCount << endl;
-                out <<"# strip height z = " << cut << endl;
-                out <<"# number of polygons: |P| = " << layerCliques.size() << endl;
+                out <<"# G_z number of vertices: |V| = " << NumberVerticesCut << std::endl;
+                out <<"# G_z number of edges: |E| = " << NumberEdges << std::endl;
+                out <<"# number of cliques in the edge-clique cover (# of lines below): |C| = " << TotalCliqueCount << std::endl;
+                out <<"# strip height z = " << cut << std::endl;
+                out <<"# number of polygons: |P| = " << layerCliques.size() << std::endl;
                 
 
                 //Piece oriented + clique covering add layer clique.
@@ -1526,14 +1527,14 @@ int main(int argc, char** argv) {
                 
             }else{
 
-                const string graphOutputPath = outputDataset + "/"+outputname+"_graph_"+to_string(length)+".txt";
+                const string graphOutputPath = outputDataset + "/"+outputname+"_graph_"+std::to_string(length)+".txt";
                 std::ofstream out(graphOutputPath, std::ios::out | std::ios::trunc);
-                out <<"# G_z number of vertices: |V| = " << NumberVerticesCut << endl;
-                out <<"# G_z number of edges: |E| = " << NumberEdges << endl;
-                out <<"# number of polygons: |P| = " << layerCliques.size() << endl;
-                out <<"# strip length z = " << cut << endl;
+                out <<"# G_z number of vertices: |V| = " << NumberVerticesCut << std::endl;
+                out <<"# G_z number of edges: |E| = " << NumberEdges << std::endl;
+                out <<"# number of polygons: |P| = " << layerCliques.size() << std::endl;
+                out <<"# strip length z = " << cut << std::endl;
                 graph.writeEdgesToFile(graphOutputPath,cutMap);
-                const string layerVertices = outputDataset + "/"+outputname+"_layerClique_"+to_string(length)+".txt";
+                const string layerVertices = outputDataset + "/"+outputname+"_layerClique_"+std::to_string(length)+".txt";
                 std::ofstream outLayerVertices(layerVertices, std::ios::out | std::ios::trunc);
                 outLayerVertices <<"#start end vertices\n";
                 for (const auto& layerClique : layerCliques){
@@ -1546,9 +1547,9 @@ int main(int argc, char** argv) {
 
             if(OUT_OLD_METADATA){
                 const string metadataOutputPath = outputDataset + "/metadata.csv";
-                ofstream metadataOut(metadataOutputPath, ios::out | ios::trunc);
+                std::ofstream metadataOut(metadataOutputPath, std::ios::out | std::ios::trunc);
                 if (!metadataOut) {
-                    throw runtime_error("Failed to open file for writing: " + metadataOutputPath);
+                    throw std::runtime_error("Failed to open file for writing: " + metadataOutputPath);
                 }
 
                 metadataOut <<"Name :\t" <<outputname << "\n";
@@ -1574,7 +1575,7 @@ int main(int argc, char** argv) {
 
             }
 
-            cout << "Finished processing cut : " << cut << "\n";
+            std::cout << "Finished processing cut : " << cut << "\n";
         }
 
 
