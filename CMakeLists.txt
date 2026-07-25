@@ -30,6 +30,16 @@ add_library(utils STATIC
 
 find_package(CGAL CONFIG REQUIRED)
 
+include(FetchContent)
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+set(JSON_Install OFF CACHE INTERNAL "")
+FetchContent_Declare(nlohmann_json
+  GIT_REPOSITORY https://github.com/nlohmann/json
+  GIT_TAG v3.11.3
+  GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(nlohmann_json)
+
 add_library(nfp_cgal SHARED
   src/nfp/NFPGenerator.cpp
 )
@@ -54,12 +64,10 @@ endif()
 
 target_include_directories(utils PRIVATE
   src
-  ${CMAKE_SOURCE_DIR}/third_party/json/include
 )
 
-set(JSON_BuildTests OFF CACHE INTERNAL "")
-set(JSON_Install OFF CACHE INTERNAL "")
-add_subdirectory(third_party/json)
+# utils' public headers include <nlohmann/json.hpp>, so propagate it
+target_link_libraries(utils PUBLIC nlohmann_json::nlohmann_json)
 
 add_executable(nfpGen
   src/NFPGen.cpp
@@ -79,17 +87,14 @@ set_target_properties(nfpGen PROPERTIES
 
 target_include_directories(nfpTest PRIVATE
   src
-  ${CMAKE_SOURCE_DIR}/third_party/json/include
 )
 
 target_include_directories(nfpGen PRIVATE
   src
-  ${CMAKE_SOURCE_DIR}/third_party/json/include
 )
 
 target_include_directories(nesting_graph PRIVATE
   src
-  ${CMAKE_SOURCE_DIR}/third_party/json/include
 )
 
 
